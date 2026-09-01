@@ -7,8 +7,11 @@ module.exports = cds.service.impl(async function () {
     const {
         Products,
         Sales,
-        Customers
+        Customers,
+        Inventory
     } = cds.entities("sales.inventory");
+
+    //const { Inventory } = cds.entities()
 
 
     // =====================================================
@@ -337,5 +340,106 @@ module.exports = cds.service.impl(async function () {
         }
 
     });
+
+    
+
+
+    this.on('adjustStock', async (req) => {
+        const { inventoryID, quantity } = req.data;
+        if (!inventoryID) {
+            req.error(400, "inventoryId is required");
+        }
+        if (!quantity || quantity < 0) {
+            req.error(400, "enter the Quantity");
+        }
+        const demo = await SELECT.one.from(Inventory).where({ ID: inventoryID });
+
+        console.log(demo);
+       
+
+        if (!demo) {
+            req.error(400, "record not found");
+        }
+
+        const newStock = demo.stockQty + quantity
+        console.log(newStock);
+
+        if (newStock <= 0) {
+            req.error(400, "newStock cannot be negative");
+        }
+        const stock = await UPDATE(Inventory).set({
+            stockQty: newStock
+
+        }).where({ ID: inventoryID });
+        //console.log(stock);
+
+       const updated = await SELECT.one.from(Inventory).where({ ID: inventoryID });
+        console.log(updated);
+        return updated;
+    })
+
+    this.on('reserveStock', async (req)=>{
+        const{inventoryID, quantity}=req.data;
+
+        if(!inventoryID){
+            req.error(400, "inventoryID is required");
+        }
+        if(!quantity){
+            req.error(400, "quantity id required");
+        }
+        const reserve=await SELECT.one.from(Inventory).where({ID:inventoryID});
+        console.log(reserve);
+
+        if(!reserve){
+            req.error(400, "record not found");
+        };
+
+        const availableStock = reserve.stockQty-reserve.reservedQty;
+        //console.log(availableStock);
+
+        if(quantity>availableStock){
+            req.error(400,"out of Stock");
+        }
+        const updatedreserve = await UPDATE(Inventory).set({
+            reservedQty: reserve.reservedQty + quantity
+        }).where({ ID: inventoryID });
+        //console.log(updatedreserve);
+        const totalReserved= await SELECT.one.from(Inventory).where({ID:inventoryID});
+        return totalReserved;
+
+    });
+
+    this.on('releaseStock', async (req)=>{
+        const {inventoryID, quantity}=req.data;
+        if(!inventoryID){
+            req.error(400, "inventoryID is required");
+        }
+        if(!quantity){
+            req.error(400, "quantity id required");
+        }
+        const release=await SELECT.one.from(Inventory).where({ID:inventoryID});
+        console.log(release);
+
+        if(!release){
+            req.error(400, "record not found");
+        };
+
+        if(quantity > release.reservedQty){
+            req.error(400, "rerservedQty Exceeds");
+        }
+
+        const updatedreserve=await UPDATE(Inventory).set({
+            reservedQty : release.reservedQty-quantity
+        }).where({ID:inventoryID});
+        return updatedreserve;
+    });
+
+
+        
+
+
+
+
+
 
 });

@@ -2,38 +2,10 @@ using { sales.inventory as db } from '../db/schema';
 
 @path: 'sales-inventory'
 service MyService {
-
-    // =================================================
-    // PRODUCTS
-    // =================================================
-
-    @readonly
     entity Products as projection on db.Products;
-
-    // =================================================
-    // CATEGORIES
-    // =================================================
-
-    @readonly
     entity Categories as projection on db.Categories;
-
-    // =================================================
-    // CUSTOMERS
-    // =================================================
-
-    @readonly
     entity Customers as projection on db.Customers;
-
-    // =================================================
-    // SALES
-    // =================================================
-
     entity Sales as projection on db.Sales;
-
-
-    // =================================================
-    // PRODUCT ACTIONS
-    // =================================================
 
     action activateProduct(
         ID : UUID
@@ -46,11 +18,6 @@ service MyService {
     action getProductStock(
         ID : UUID
     ) returns Decimal(15,2);
-
-
-    // =================================================
-    // SALES ACTIONS
-    // =================================================
 
     action completeSale(
         ID : UUID
@@ -65,15 +32,11 @@ service MyService {
     
 
 }
-
+@path: 'sales-inventory'
 service MyService1 {
     entity Inventory as projection on db.Inventory;
     entity Warehouses as projection on db.Warehouses;
     action adjustStock(inventoryID:UUID,quantity:Integer) returns  String;
     action reserveStock(inventoryID:UUID,quantity:Integer) returns  String;
     action releaseStock(inventoryID:UUID,quantity:Integer) returns  String;
-
-
-    
-
 }
