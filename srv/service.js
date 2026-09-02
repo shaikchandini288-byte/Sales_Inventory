@@ -1,4 +1,3 @@
-
 const cds = require("@sap/cds");
 
 module.exports = cds.service.impl(async function () {
@@ -9,7 +8,8 @@ module.exports = cds.service.impl(async function () {
         Products,
         Sales,
         Customers,
-        Inventory
+        Inventory,
+        Warehouses
     } = cds.entities("sales.inventory");
 
 
@@ -128,30 +128,6 @@ module.exports = cds.service.impl(async function () {
     });
 
 
-    // =====================================================
-    // SALES
-    // =====================================================
-
-    // =====================================================
-    // COMPLETE SALE
-    // =====================================================
-    //
-    // Sale lifecycle:
-    //
-    // CREATE SALE
-    //     ↓
-    // PENDING
-    //     ↓
-    // COMPLETE SALE
-    //     ↓
-    // COMPLETED
-    //     ↓
-    // Inventory stock decreases
-    //
-    // IMPORTANT:
-    // Inventory is NOT decreased during CREATE.
-    //
-    // =====================================================
 
     this.on("completeSale", async (req) => {
 
@@ -163,11 +139,6 @@ module.exports = cds.service.impl(async function () {
                 "Sale ID is required"
             );
         }
-
-
-        // -------------------------------------------------
-        // Find Sale
-        // -------------------------------------------------
 
         const sale = await db.run(
             SELECT.one
@@ -183,43 +154,37 @@ module.exports = cds.service.impl(async function () {
         }
 
 
-        // -------------------------------------------------
-        // Check Sale Status
-        // -------------------------------------------------
-
-        if (sale.status === "CANCELLED") {
+        if (sale.status === "Cancelled") {
 
             return req.error(
                 400,
-                "Cancelled sale cannot be completed"
+                "Cancelled sale cannot be Completed"
             );
         }
 
 
-        if (sale.status === "COMPLETED") {
+        if (sale.status === "Completed") {
 
             return req.error(
                 400,
-                "Sale is already completed"
+                "Sale is already Completed"
             );
         }
 
 
-        if (sale.status !== "PENDING") {
+        if (sale.status !== "Pending") {
 
             return req.error(
                 400,
-                `Only pending sales can be completed. Current status: ${sale.status}`
+                `Only Pending sales can be Completed. Current status: ${sale.status}`
             );
         }
-
-
-        // -------------------------------------------------
-        // Validate Sale Product
-        // -------------------------------------------------
 
         const productID =
             sale.product_ID;
+
+        const warehouseID =
+            sale.warehouse_ID;
 
         const quantity =
             Number(
@@ -245,39 +210,56 @@ module.exports = cds.service.impl(async function () {
         }
 
 
-        // -------------------------------------------------
-        // Find Inventory
-        // -------------------------------------------------
+        let inventory;
 
-        const inventory =
-            await db.run(
+        if (warehouseID) {
+
+            inventory = await db.run(
                 SELECT.one
                     .from(Inventory)
                     .where({
-                        product_ID: productID
+                        product_ID:
+                            productID,
+
+                        warehouse_ID:
+                            warehouseID
                     })
             );
+
+        } else {
+
+            inventory = await db.run(
+                SELECT.one
+                    .from(Inventory)
+                    .where({
+                        product_ID:
+                            productID
+                    })
+            );
+        }
 
 
         if (!inventory) {
 
-            return req.error(
-                404,
-                "Inventory record not found for this product"
-            );
+            if (warehouseID) {
+
+                return req.error(
+                    404,
+                    "Inventory record not found for this product and warehouse"
+                );
+
+            } else {
+
+                return req.error(
+                    404,
+                    "Inventory record not found for this product"
+                );
+            }
         }
 
 
         // -------------------------------------------------
         // Check Available Stock
-        // -------------------------------------------------
-        //
-        // Available Stock =
-        // stockQty - reservedQty
-        //
-        // The sale can only be completed when
-        // sufficient stock is available.
-        //
         // -------------------------------------------------
 
         const currentInventoryStock =
@@ -337,7 +319,8 @@ module.exports = cds.service.impl(async function () {
                         newInventoryStock
                 })
                 .where({
-                    ID: inventory.ID
+                    ID:
+                        inventory.ID
                 })
         );
 
@@ -351,7 +334,8 @@ module.exports = cds.service.impl(async function () {
                 SELECT.one
                     .from(Products)
                     .where({
-                        ID: productID
+                        ID:
+                            productID
                     })
             );
 
@@ -368,11 +352,6 @@ module.exports = cds.service.impl(async function () {
         // -------------------------------------------------
         // Synchronize Product Stock
         // -------------------------------------------------
-        //
-        // Product stock becomes exactly equal
-        // to Inventory stock.
-        //
-        // -------------------------------------------------
 
         await db.run(
             UPDATE(Products)
@@ -381,7 +360,8 @@ module.exports = cds.service.impl(async function () {
                         newInventoryStock
                 })
                 .where({
-                    ID: productID
+                    ID:
+                        productID
                 })
         );
 
@@ -393,7 +373,8 @@ module.exports = cds.service.impl(async function () {
         await db.run(
             UPDATE(Sales)
                 .set({
-                    status: "COMPLETED"
+                    status:
+                        "Completed"
                 })
                 .where({
                     ID
@@ -408,7 +389,9 @@ module.exports = cds.service.impl(async function () {
         return await db.run(
             SELECT.one
                 .from(Sales)
-                .where({ ID })
+                .where({
+                    ID
+                })
         );
     });
 
@@ -441,35 +424,46 @@ module.exports = cds.service.impl(async function () {
             );
         }
 
-        if (sale.status === "COMPLETED") {
+        if (sale.status === "Completed") {
+
             return req.error(
                 400,
-                "Completed sale cannot be cancelled"
+                "Completed sale cannot be Cancelled"
             );
         }
 
-        if (sale.status === "CANCELLED") {
+        if (sale.status === "Cancelled") {
+
             return req.error(
                 400,
-                "Sale is already cancelled"
+                "Sale is already Cancelled"
             );
         }
 
         await db.run(
             UPDATE(Sales)
                 .set({
-                    status: "CANCELLED"
+                    status:
+                        "Cancelled"
                 })
-                .where({ ID })
+                .where({
+                    ID
+                })
         );
 
         return await db.run(
             SELECT.one
                 .from(Sales)
-                .where({ ID })
+                .where({
+                    ID
+                })
         );
     });
 
+
+    // =====================================================
+    // GET TOTAL SALES
+    // =====================================================
 
     this.on("getTotalSales", async () => {
 
@@ -481,7 +475,8 @@ module.exports = cds.service.impl(async function () {
                 )
                 .where({
                     status: {
-                        "!=": "CANCELLED"
+                        "!=":
+                            "Cancelled"
                     }
                 })
         );
@@ -494,19 +489,15 @@ module.exports = cds.service.impl(async function () {
     // BEFORE CREATE SALE
     // =====================================================
     //
-    // Product status is NOT checked.
+    // Customer     -> Required
+    // Product      -> Required
+    // Quantity     -> Required
+    // Warehouse    -> OPTIONAL
     //
-    // Inventory is the source of truth.
+    // Sale Number  -> Automatic
+    // Status       -> Pending
     //
-    // Available Stock =
-    // stockQty - reservedQty
-    //
-    // Sale Number is generated automatically.
-    //
-    // Initial Status = PENDING
-    //
-    // IMPORTANT:
-    // Inventory stock is NOT decreased here.
+    // Inventory is NOT decreased here.
     //
     // =====================================================
 
@@ -516,28 +507,41 @@ module.exports = cds.service.impl(async function () {
 
 
         // -------------------------------------------------
-        // Basic validation
+        // Customer Validation
         // -------------------------------------------------
 
         if (!data.customer_ID) {
+
             return req.error(
                 400,
                 "Customer is required"
             );
         }
 
+
+        // -------------------------------------------------
+        // Product Validation
+        // -------------------------------------------------
+
         if (!data.product_ID) {
+
             return req.error(
                 400,
                 "Product is required"
             );
         }
 
+
+        // -------------------------------------------------
+        // Quantity Validation
+        // -------------------------------------------------
+
         if (
             data.quantity === undefined ||
             data.quantity === null ||
             Number(data.quantity) <= 0
         ) {
+
             return req.error(
                 400,
                 "Quantity must be greater than zero"
@@ -546,18 +550,22 @@ module.exports = cds.service.impl(async function () {
 
 
         // -------------------------------------------------
-        // Check customer
+        // Check Customer
         // -------------------------------------------------
 
-        const customer = await db.run(
-            SELECT.one
-                .from(Customers)
-                .where({
-                    ID: data.customer_ID
-                })
-        );
+        const customer =
+            await db.run(
+                SELECT.one
+                    .from(Customers)
+                    .where({
+                        ID:
+                            data.customer_ID
+                    })
+            );
+
 
         if (!customer) {
+
             return req.error(
                 404,
                 "Customer not found"
@@ -566,18 +574,22 @@ module.exports = cds.service.impl(async function () {
 
 
         // -------------------------------------------------
-        // Check product
+        // Check Product
         // -------------------------------------------------
 
-        const product = await db.run(
-            SELECT.one
-                .from(Products)
-                .where({
-                    ID: data.product_ID
-                })
-        );
+        const product =
+            await db.run(
+                SELECT.one
+                    .from(Products)
+                    .where({
+                        ID:
+                            data.product_ID
+                    })
+            );
+
 
         if (!product) {
+
             return req.error(
                 404,
                 "Product not found"
@@ -586,33 +598,64 @@ module.exports = cds.service.impl(async function () {
 
 
         // -------------------------------------------------
-        // IMPORTANT
+        // Find Inventory
         // -------------------------------------------------
         //
-        // Product status is intentionally NOT checked.
+        // Warehouse is optional.
         //
-        // Sales are controlled by Inventory stock.
+        // If warehouse is provided:
+        //     Product + Warehouse
+        //
+        // If warehouse is NOT provided:
+        //     Product only
         //
         // -------------------------------------------------
 
+        let inventory;
 
-        // -------------------------------------------------
-        // Find Inventory for Product
-        // -------------------------------------------------
+        if (data.warehouse_ID) {
 
-        const inventory = await db.run(
-            SELECT.one
-                .from(Inventory)
-                .where({
-                    product_ID: data.product_ID
-                })
-        );
+            inventory = await db.run(
+                SELECT.one
+                    .from(Inventory)
+                    .where({
+                        product_ID:
+                            data.product_ID,
+
+                        warehouse_ID:
+                            data.warehouse_ID
+                    })
+            );
+
+        } else {
+
+            inventory = await db.run(
+                SELECT.one
+                    .from(Inventory)
+                    .where({
+                        product_ID:
+                            data.product_ID
+                    })
+            );
+        }
+
 
         if (!inventory) {
-            return req.error(
-                404,
-                "Inventory record not found for this product"
-            );
+
+            if (data.warehouse_ID) {
+
+                return req.error(
+                    404,
+                    "Inventory record not found for the selected product and warehouse"
+                );
+
+            } else {
+
+                return req.error(
+                    404,
+                    "Inventory record not found for the selected product"
+                );
+            }
         }
 
 
@@ -621,16 +664,23 @@ module.exports = cds.service.impl(async function () {
         // -------------------------------------------------
 
         const quantity =
-            Number(data.quantity);
+            Number(
+                data.quantity
+            );
 
         const inventoryStock =
-            Number(inventory.stockQty || 0);
+            Number(
+                inventory.stockQty || 0
+            );
 
         const reservedQty =
-            Number(inventory.reservedQty || 0);
+            Number(
+                inventory.reservedQty || 0
+            );
 
         const availableStock =
-            inventoryStock - reservedQty;
+            inventoryStock -
+            reservedQty;
 
 
         if (quantity > availableStock) {
@@ -642,74 +692,105 @@ module.exports = cds.service.impl(async function () {
         }
 
 
-        // -------------------------------------------------
-        // Generate Sale Number
-        // -------------------------------------------------
+        // =================================================
+        // AUTOMATIC SALE NUMBER
+        // =================================================
         //
-        // Example:
+        // The frontend does NOT generate this number.
+        //
+        // Existing:
         //
         // SO00001
         // SO00002
         // SO00003
         //
-        // -------------------------------------------------
+        // Highest = 3
+        //
+        // New = SO00004
+        //
+        // =================================================
 
-        if (!data.saleNumber) {
-
-            const lastSale = await db.run(
-                SELECT.one
+        const allSales =
+            await db.run(
+                SELECT
                     .from(Sales)
-                    .columns("saleNumber")
-                    .orderBy(
-                        "saleNumber desc"
+                    .columns(
+                        "saleNumber"
                     )
             );
 
-            let nextNumber = 1;
 
+        let highestSaleNumber = 0;
+
+
+        for (
+            const existingSale
+            of allSales
+        ) {
 
             if (
-                lastSale &&
-                lastSale.saleNumber
+                !existingSale.saleNumber
             ) {
-
-                const lastNumber =
-                    parseInt(
-                        String(
-                            lastSale.saleNumber
-                        ).replace(
-                            "SO",
-                            ""
-                        ),
-                        10
-                    );
-
-
-                if (
-                    !Number.isNaN(
-                        lastNumber
-                    )
-                ) {
-
-                    nextNumber =
-                        lastNumber + 1;
-                }
+                continue;
             }
 
 
-            data.saleNumber =
-                "SO" +
+            const match =
                 String(
-                    nextNumber
-                ).padStart(
-                    5,
-                    "0"
+                    existingSale.saleNumber
+                )
+                    .trim()
+                    .match(
+                        /^SO(\d+)$/i
+                    );
+
+
+            if (!match) {
+                continue;
+            }
+
+
+            const currentNumber =
+                parseInt(
+                    match[1],
+                    10
                 );
+
+
+            if (
+                !Number.isNaN(
+                    currentNumber
+                ) &&
+                currentNumber >
+                    highestSaleNumber
+            ) {
+
+                highestSaleNumber =
+                    currentNumber;
+            }
         }
 
 
         // -------------------------------------------------
-        // Set Unit Price
+        // Generate Next Sale Number
+        // -------------------------------------------------
+
+        const nextSaleNumber =
+            highestSaleNumber + 1;
+
+
+        data.saleNumber =
+            "SO" +
+            String(
+                nextSaleNumber
+            ).padStart(
+                5,
+                "0"
+            );
+
+
+        // -------------------------------------------------
+        // Unit Price
         // -------------------------------------------------
 
         const unitPrice =
@@ -717,12 +798,13 @@ module.exports = cds.service.impl(async function () {
                 product.unitPrice || 0
             );
 
+
         data.unitPrice =
             unitPrice;
 
 
         // -------------------------------------------------
-        // Calculate Total Amount
+        // Total Amount
         // -------------------------------------------------
 
         data.totalAmount =
@@ -742,17 +824,11 @@ module.exports = cds.service.impl(async function () {
 
 
         // -------------------------------------------------
-        // Sale Status
-        // -------------------------------------------------
-        //
-        // New sales are always PENDING.
-        //
-        // Inventory is NOT changed.
-        //
+        // Initial Status
         // -------------------------------------------------
 
         data.status =
-            "PENDING";
+            "Pending";
     });
 
 
@@ -760,41 +836,32 @@ module.exports = cds.service.impl(async function () {
     // AFTER CREATE SALE
     // =====================================================
     //
-    // IMPORTANT:
+    // No inventory update here.
     //
-    // There is intentionally NO inventory update here.
-    //
-    // Inventory stock is decreased only inside
-    // completeSale().
-    //
-    // CREATE SALE:
-    //
+    // CREATE:
     // Inventory = 150
     // Sale      = 5
+    // Status    = Pending
     //
-    // After CREATE:
-    //
-    // Inventory = 150
-    // Sale      = PENDING
-    //
-    // After COMPLETE:
-    //
+    // COMPLETE:
     // Inventory = 145
-    // Sale      = COMPLETED
+    // Sale      = Completed
     //
     // =====================================================
 
-    this.after("CREATE", "Sales", async (sale, req) => {
+    this.after(
+        "CREATE",
+        "Sales",
+        async (sale, req) => {
 
-        // No inventory update here.
+            // Intentionally empty.
 
-        // Sale is created as PENDING.
-        //
-        // Stock will be decreased only when
-        // completeSale action is executed.
+            // Inventory stock is changed
+            // only inside completeSale().
 
-        return;
-    });
+            return;
+        }
+    );
 
 
     // =====================================================
@@ -844,7 +911,8 @@ module.exports = cds.service.impl(async function () {
                 SELECT.one
                     .from(Inventory)
                     .where({
-                        ID: inventoryID
+                        ID:
+                            inventoryID
                     })
             );
 
@@ -882,10 +950,12 @@ module.exports = cds.service.impl(async function () {
         await db.run(
             UPDATE(Inventory)
                 .set({
-                    stockQty: newStock
+                    stockQty:
+                        newStock
                 })
                 .where({
-                    ID: inventoryID
+                    ID:
+                        inventoryID
                 })
         );
 
@@ -912,7 +982,8 @@ module.exports = cds.service.impl(async function () {
                 SELECT.one
                     .from(Products)
                     .where({
-                        ID: inventory.product_ID
+                        ID:
+                            inventory.product_ID
                     })
             );
 
@@ -933,10 +1004,12 @@ module.exports = cds.service.impl(async function () {
         await db.run(
             UPDATE(Products)
                 .set({
-                    stockQty: newStock
+                    stockQty:
+                        newStock
                 })
                 .where({
-                    ID: inventory.product_ID
+                    ID:
+                        inventory.product_ID
                 })
         );
 
@@ -998,7 +1071,8 @@ module.exports = cds.service.impl(async function () {
                 SELECT.one
                     .from(Inventory)
                     .where({
-                        ID: inventoryID
+                        ID:
+                            inventoryID
                     })
             );
 
@@ -1070,7 +1144,8 @@ module.exports = cds.service.impl(async function () {
                         newReservedQty
                 })
                 .where({
-                    ID: inventoryID
+                    ID:
+                        inventoryID
                 })
         );
 
@@ -1130,7 +1205,8 @@ module.exports = cds.service.impl(async function () {
                 SELECT.one
                     .from(Inventory)
                     .where({
-                        ID: inventoryID
+                        ID:
+                            inventoryID
                     })
             );
 
@@ -1193,7 +1269,8 @@ module.exports = cds.service.impl(async function () {
                         newReservedQty
                 })
                 .where({
-                    ID: inventoryID
+                    ID:
+                        inventoryID
                 })
         );
 
@@ -1206,3 +1283,4 @@ module.exports = cds.service.impl(async function () {
     });
 
 });
+
