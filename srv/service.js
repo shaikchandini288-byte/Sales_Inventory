@@ -11,11 +11,9 @@ module.exports = cds.service.impl(async function () {
         Inventory
     } = cds.entities("sales.inventory");
 
-    //const { Inventory } = cds.entities()
-
 
     // =====================================================
-    // ACTIVATE PRODUCT
+    // PRODUCT
     // =====================================================
 
     this.on("activateProduct", async (req) => {
@@ -36,9 +34,7 @@ module.exports = cds.service.impl(async function () {
 
         await db.run(
             UPDATE(Products)
-                .set({
-                    status: "ACTIVE"
-                })
+                .set({ status: "ACTIVE" })
                 .where({ ID })
         );
 
@@ -47,10 +43,6 @@ module.exports = cds.service.impl(async function () {
         );
     });
 
-
-    // =====================================================
-    // DEACTIVATE PRODUCT
-    // =====================================================
 
     this.on("deactivateProduct", async (req) => {
 
@@ -70,9 +62,7 @@ module.exports = cds.service.impl(async function () {
 
         await db.run(
             UPDATE(Products)
-                .set({
-                    status: "INACTIVE"
-                })
+                .set({ status: "INACTIVE" })
                 .where({ ID })
         );
 
@@ -81,10 +71,6 @@ module.exports = cds.service.impl(async function () {
         );
     });
 
-
-    // =====================================================
-    // GET PRODUCT STOCK
-    // =====================================================
 
     this.on("getProductStock", async (req) => {
 
@@ -110,7 +96,7 @@ module.exports = cds.service.impl(async function () {
 
 
     // =====================================================
-    // COMPLETE SALE
+    // SALES
     // =====================================================
 
     this.on("completeSale", async (req) => {
@@ -145,9 +131,7 @@ module.exports = cds.service.impl(async function () {
 
         await db.run(
             UPDATE(Sales)
-                .set({
-                    status: "COMPLETED"
-                })
+                .set({ status: "COMPLETED" })
                 .where({ ID })
         );
 
@@ -156,10 +140,6 @@ module.exports = cds.service.impl(async function () {
         );
     });
 
-
-    // =====================================================
-    // CANCEL SALE
-    // =====================================================
 
     this.on("cancelSale", async (req) => {
 
@@ -193,9 +173,7 @@ module.exports = cds.service.impl(async function () {
 
         await db.run(
             UPDATE(Sales)
-                .set({
-                    status: "CANCELLED"
-                })
+                .set({ status: "CANCELLED" })
                 .where({ ID })
         );
 
@@ -204,10 +182,6 @@ module.exports = cds.service.impl(async function () {
         );
     });
 
-
-    // =====================================================
-    // GET TOTAL SALES
-    // =====================================================
 
     this.on("getTotalSales", async () => {
 
@@ -234,23 +208,14 @@ module.exports = cds.service.impl(async function () {
 
         const data = req.data;
 
-        // Customer validation
         if (!data.customer_ID) {
-            return req.error(
-                400,
-                "Customer is required"
-            );
+            return req.error(400, "Customer is required");
         }
 
-        // Product validation
         if (!data.product_ID) {
-            return req.error(
-                400,
-                "Product is required"
-            );
+            return req.error(400, "Product is required");
         }
 
-        // Quantity validation
         if (
             data.quantity === undefined ||
             data.quantity === null ||
@@ -262,8 +227,6 @@ module.exports = cds.service.impl(async function () {
             );
         }
 
-
-        // Check customer
         const customer = await db.run(
             SELECT.one
                 .from(Customers)
@@ -273,14 +236,9 @@ module.exports = cds.service.impl(async function () {
         );
 
         if (!customer) {
-            return req.error(
-                404,
-                "Customer not found"
-            );
+            return req.error(404, "Customer not found");
         }
 
-
-        // Check product
         const product = await db.run(
             SELECT.one
                 .from(Products)
@@ -290,14 +248,9 @@ module.exports = cds.service.impl(async function () {
         );
 
         if (!product) {
-            return req.error(
-                404,
-                "Product not found"
-            );
+            return req.error(404, "Product not found");
         }
 
-
-        // Check product status
         if (product.status !== "ACTIVE") {
             return req.error(
                 400,
@@ -305,10 +258,9 @@ module.exports = cds.service.impl(async function () {
             );
         }
 
-
-        // Check stock
         const quantity = Number(data.quantity);
-        const availableStock = Number(product.stockQty || 0);
+        const availableStock =
+            Number(product.stockQty || 0);
 
         if (quantity > availableStock) {
             return req.error(
@@ -317,129 +269,226 @@ module.exports = cds.service.impl(async function () {
             );
         }
 
-
-        // Calculate price
-        const unitPrice = Number(product.unitPrice || 0);
+        const unitPrice =
+            Number(product.unitPrice || 0);
 
         data.unitPrice = unitPrice;
+        data.totalAmount = quantity * unitPrice;
 
-        data.totalAmount =
-            quantity * unitPrice;
-
-
-        // Sale date
         if (!data.saleDate) {
-            data.saleDate =
-                new Date().toISOString();
+            data.saleDate = new Date().toISOString();
         }
 
-
-        // Default status
         if (!data.status) {
             data.status = "CREATED";
         }
-
     });
 
-    
 
+    // =====================================================
+    // INVENTORY
+    // =====================================================
 
-    this.on('adjustStock', async (req) => {
+    this.on("adjustStock", async (req) => {
+
         const { inventoryID, quantity } = req.data;
+
         if (!inventoryID) {
-            req.error(400, "inventoryId is required");
-        }
-        if (!quantity || quantity < 0) {
-            req.error(400, "enter the Quantity");
-        }
-        const demo = await SELECT.one.from(Inventory).where({ ID: inventoryID });
-
-        console.log(demo);
-       
-
-        if (!demo) {
-            req.error(400, "record not found");
+            return req.error(
+                400,
+                "inventoryID is required"
+            );
         }
 
-        const newStock = demo.stockQty + quantity
-        console.log(newStock);
-
-        if (newStock <= 0) {
-            req.error(400, "newStock cannot be negative");
-        }
-        const stock = await UPDATE(Inventory).set({
-            stockQty: newStock
-
-        }).where({ ID: inventoryID });
-        //console.log(stock);
-
-       const updated = await SELECT.one.from(Inventory).where({ ID: inventoryID });
-        console.log(updated);
-        return updated;
-    })
-
-    this.on('reserveStock', async (req)=>{
-        const{inventoryID, quantity}=req.data;
-
-        if(!inventoryID){
-            req.error(400, "inventoryID is required");
-        }
-        if(!quantity){
-            req.error(400, "quantity id required");
-        }
-        const reserve=await SELECT.one.from(Inventory).where({ID:inventoryID});
-        console.log(reserve);
-
-        if(!reserve){
-            req.error(400, "record not found");
-        };
-
-        const availableStock = reserve.stockQty-reserve.reservedQty;
-        //console.log(availableStock);
-
-        if(quantity>availableStock){
-            req.error(400,"out of Stock");
-        }
-        const updatedreserve = await UPDATE(Inventory).set({
-            reservedQty: reserve.reservedQty + quantity
-        }).where({ ID: inventoryID });
-        //console.log(updatedreserve);
-        const totalReserved= await SELECT.one.from(Inventory).where({ID:inventoryID});
-        return totalReserved;
-
-    });
-
-    this.on('releaseStock', async (req)=>{
-        const {inventoryID, quantity}=req.data;
-        if(!inventoryID){
-            req.error(400, "inventoryID is required");
-        }
-        if(!quantity){
-            req.error(400, "quantity id required");
-        }
-        const release=await SELECT.one.from(Inventory).where({ID:inventoryID});
-        console.log(release);
-
-        if(!release){
-            req.error(400, "record not found");
-        };
-
-        if(quantity > release.reservedQty){
-            req.error(400, "rerservedQty Exceeds");
+        if (
+            quantity === undefined ||
+            quantity === null ||
+            Number(quantity) < 0
+        ) {
+            return req.error(
+                400,
+                "Quantity must be zero or greater"
+            );
         }
 
-        const updatedreserve=await UPDATE(Inventory).set({
-            reservedQty : release.reservedQty-quantity
-        }).where({ID:inventoryID});
-        return updatedreserve;
+        const inventory = await db.run(
+            SELECT.one
+                .from(Inventory)
+                .where({
+                    ID: inventoryID
+                })
+        );
+
+        if (!inventory) {
+            return req.error(
+                404,
+                "Inventory record not found"
+            );
+        }
+
+        const currentStock =
+            Number(inventory.stockQty || 0);
+
+        const newStock =
+            currentStock + Number(quantity);
+
+        await db.run(
+            UPDATE(Inventory)
+                .set({
+                    stockQty: newStock
+                })
+                .where({
+                    ID: inventoryID
+                })
+        );
+
+        return `Stock adjusted successfully. New stock: ${newStock}`;
     });
 
 
-        
+    // =====================================================
+    // RESERVE STOCK
+    // =====================================================
+
+    this.on("reserveStock", async (req) => {
+
+        const { inventoryID, quantity } = req.data;
+
+        if (!inventoryID) {
+            return req.error(
+                400,
+                "inventoryID is required"
+            );
+        }
+
+        if (
+            quantity === undefined ||
+            quantity === null ||
+            Number(quantity) <= 0
+        ) {
+            return req.error(
+                400,
+                "Quantity must be greater than zero"
+            );
+        }
+
+        const inventory = await db.run(
+            SELECT.one
+                .from(Inventory)
+                .where({
+                    ID: inventoryID
+                })
+        );
+
+        if (!inventory) {
+            return req.error(
+                404,
+                "Inventory record not found"
+            );
+        }
+
+        const stockQty =
+            Number(inventory.stockQty || 0);
+
+        const reservedQty =
+            Number(inventory.reservedQty || 0);
+
+        const requestedQty =
+            Number(quantity);
+
+        const availableStock =
+            stockQty - reservedQty;
+
+        if (requestedQty > availableStock) {
+            return req.error(
+                400,
+                `Insufficient available stock. Available stock: ${availableStock}`
+            );
+        }
+
+        await db.run(
+            UPDATE(Inventory)
+                .set({
+                    reservedQty:
+                        reservedQty + requestedQty
+                })
+                .where({
+                    ID: inventoryID
+                })
+        );
+
+        return `Stock reserved successfully. Reserved quantity: ${reservedQty + requestedQty}`;
+    });
 
 
+    // =====================================================
+    // RELEASE STOCK
+    // =====================================================
 
+    this.on("releaseStock", async (req) => {
 
+        const { inventoryID, quantity } = req.data;
 
+        if (!inventoryID) {
+            return req.error(
+                400,
+                "inventoryID is required"
+            );
+        }
+
+        if (
+            quantity === undefined ||
+            quantity === null ||
+            Number(quantity) <= 0
+        ) {
+            return req.error(
+                400,
+                "Quantity must be greater than zero"
+            );
+        }
+
+        const inventory = await db.run(
+            SELECT.one
+                .from(Inventory)
+                .where({
+                    ID: inventoryID
+                })
+        );
+
+        if (!inventory) {
+            return req.error(
+                404,
+                "Inventory record not found"
+            );
+        }
+
+        const reservedQty =
+            Number(inventory.reservedQty || 0);
+
+        const requestedQty =
+            Number(quantity);
+
+        if (requestedQty > reservedQty) {
+            return req.error(
+                400,
+                `Cannot release ${requestedQty}. Reserved quantity is only ${reservedQty}`
+            );
+        }
+
+        const newReservedQty =
+            reservedQty - requestedQty;
+
+        await db.run(
+            UPDATE(Inventory)
+                .set({
+                    reservedQty: newReservedQty
+                })
+                .where({
+                    ID: inventoryID
+                })
+        );
+
+        return `Stock released successfully. Reserved quantity: ${newReservedQty}`;
+    });
 
 });

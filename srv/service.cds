@@ -32,7 +32,7 @@ service MyService {
     
 
 }
-@path: 'sales-inventory'
+@path: 'inventory'
 service MyService1 {
     entity Inventory as projection on db.Inventory;
     entity Warehouses as projection on db.Warehouses;
