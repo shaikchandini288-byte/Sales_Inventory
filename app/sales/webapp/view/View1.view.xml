@@ -1,409 +1,469 @@
-<mvc:View 
-    controllerName="sales.controller.View1" 
-    xmlns:mvc="sap.ui.core.mvc" 
-    xmlns="sap.m" 
-    xmlns:core="sap.ui.core"> 
- 
-    <Page 
-        id="view1Page" 
-        title="Sales &amp; Inventory Management" 
-        enableScrolling="true"> 
- 
-        <content> 
-            <IconTabBar 
-                id="mainTabBar" 
-                expandable="false" 
-                selectedKey="products" 
-                class="sapUiResponsiveContentPadding"> 
- 
-                <items> 
- 
-                    <!-- ========================= -->
-                    <!-- PRODUCTS -->
-                    <!-- ========================= --> 
- 
-                    <IconTabFilter 
-                        id="productsTab" 
-                        key="products" 
-                        text="Products" 
-                        icon="sap-icon://product"> 
- 
-                        <VBox class="sapUiSmallMargin"> 
- 
-                            <Toolbar> 
-                                <Title 
-                                    text="Products" 
-                                    level="H2"/> 
- 
-                                <ToolbarSpacer/> 
- 
-                                <Button 
-                                    text="Refresh" 
-                                    icon="sap-icon://refresh" 
-                                    press=".onRefresh" 
-                                    class="sapUiTinyMarginBegin"/> 
-                            </Toolbar> 
- 
-                            <Table 
-                                id="productsTable" 
-                                growing="true" 
-                                growingThreshold="20" 
-                                noDataText="No products available" 
-                                items="{local>/products}" 
-                                selectionChange=".onProductSelectionChange"> 
- 
-                                <columns> 
-                                    <Column> 
-                                        <Text text="Product Code"/> 
-                                    </Column> 
- 
-                                    <Column> 
-                                        <Text text="Product Name"/> 
-                                    </Column> 
- 
-                                    <Column> 
-                                        <Text text="Category"/> 
-                                    </Column> 
- 
-                                    <Column hAlign="End"> 
-                                        <Text text="Unit Price"/> 
-                                    </Column> 
- 
-                                    <Column hAlign="End"> 
-                                        <Text text="Stock Qty"/> 
-                                    </Column> 
- 
-                                    <Column> 
-                                        <Text text="Status"/> 
-                                    </Column> 
-                                </columns> 
- 
-                                <items> 
-                                    <ColumnListItem> 
-                                        <cells> 
- 
-                                            <Text 
-                                                text="{local>productCode}"/> 
- 
-                                            <Text 
-                                                text="{local>productName}"/> 
- 
-                                            <Text 
-                                                text="{local>category/categoryName}"/> 
- 
-                                            <ObjectNumber 
-                                                number="{local>unitPrice}" 
-                                                unit="INR"/> 
- 
-                                            <ObjectNumber 
-                                                number="{local>stockQty}"/> 
- 
-                                            <ObjectStatus 
-                                                text="{local>status}" 
-                                                state="None"/> 
- 
-                                        </cells> 
-                                    </ColumnListItem> 
-                                </items> 
- 
-                            </Table> 
- 
-                        </VBox> 
-                    </IconTabFilter> 
- 
- 
-                    <!-- ========================= -->
-                    <!-- SALES -->
-                    <!-- ========================= --> 
- 
-                    <IconTabFilter 
-                        id="salesTab" 
-                        key="sales" 
-                        text="Sales" 
-                        icon="sap-icon://sales-order"> 
- 
-                        <VBox class="sapUiSmallMargin"> 
- 
-                            <Toolbar> 
-                                <Title 
-                                    text="Sales" 
-                                    level="H2"/> 
- 
-                                <ToolbarSpacer/> 
- 
-                                <!-- Disabled until sale is selected -->
-                                <Button 
-                                    id="newSaleButton"
-                                    text="New Sale" 
-                                    icon="sap-icon://add" 
-                                    type="Emphasized" 
-                                    enabled="false"
-                                    press=".onNewSale"/> 
- 
-                                <Button 
-                                    id="completeSaleButton"
-                                    text="Complete" 
-                                    icon="sap-icon://accept" 
-                                    type="Accept" 
-                                    enabled="false"
-                                    press=".onCompleteSale" 
-                                    class="sapUiTinyMarginBegin"/> 
- 
-                                <Button 
-                                    id="cancelSaleButton"
-                                    text="Cancel" 
-                                    icon="sap-icon://decline" 
-                                    type="Reject" 
-                                    enabled="false"
-                                    press=".onCancelSale" 
-                                    class="sapUiTinyMarginBegin"/> 
- 
-                                <Button 
-                                    id="refreshSalesButton"
-                                    text="Refresh" 
-                                    icon="sap-icon://refresh" 
-                                    enabled="false"
-                                    press=".onRefresh" 
-                                    class="sapUiTinyMarginBegin"/> 
-                            </Toolbar> 
- 
-                            <Table 
-                                id="salesTable" 
-                                mode="SingleSelectLeft" 
-                                growing="true" 
-                                growingThreshold="20" 
-                                noDataText="No sales available" 
-                                items="{local>/sales}" 
-                                selectionChange=".onSaleSelectionChange"> 
- 
-                                <columns> 
-                                    <Column> 
-                                        <Text text="Sale Number"/> 
-                                    </Column> 
- 
-                                    <Column> 
-                                        <Text text="Customer"/> 
-                                    </Column> 
- 
-                                    <Column> 
-                                        <Text text="Product"/> 
-                                    </Column> 
- 
-                                    <Column hAlign="End"> 
-                                        <Text text="Quantity"/> 
-                                    </Column> 
- 
-                                    <Column hAlign="End"> 
-                                        <Text text="Unit Price"/> 
-                                    </Column> 
- 
-                                    <Column hAlign="End"> 
-                                        <Text text="Total Amount"/> 
-                                    </Column> 
- 
-                                    <Column> 
-                                        <Text text="Sale Date"/> 
-                                    </Column> 
- 
-                                    <Column> 
-                                        <Text text="Status"/> 
-                                    </Column> 
-                                </columns> 
- 
-                                <items> 
-                                    <ColumnListItem> 
-                                        <cells> 
- 
-                                            <Text 
-                                                text="{local>saleNumber}"/> 
- 
-                                            <Text 
-                                                text="{local>customer/customerName}"/> 
- 
-                                            <Text 
-                                                text="{local>product/productName}"/> 
- 
-                                            <ObjectNumber 
-                                                number="{local>quantity}"/> 
- 
-                                            <ObjectNumber 
-                                                number="{local>unitPrice}" 
-                                                unit="INR"/> 
- 
-                                            <ObjectNumber 
-                                                number="{local>totalAmount}" 
-                                                unit="INR"/> 
- 
-                                            <Text 
-                                                text="{local>saleDate}"/> 
- 
-                                            <ObjectStatus 
-                                                text="{local>status}" 
-                                                state="None"/> 
- 
-                                        </cells> 
-                                    </ColumnListItem> 
-                                </items> 
- 
-                            </Table> 
- 
-                        </VBox> 
-                    </IconTabFilter> 
- 
- 
-                    <!-- ========================= -->
-                    <!-- INVENTORY -->
-                    <!-- ========================= --> 
- 
-                    <IconTabFilter 
-                        id="inventoryTab" 
-                        key="inventory" 
-                        text="Inventory" 
-                        icon="sap-icon://inventory"> 
- 
-                        <VBox class="sapUiSmallMargin"> 
- 
-                            <Toolbar> 
-                                <Title 
-                                    text="Stock Overview" 
-                                    level="H2"/> 
- 
-                                <ToolbarSpacer/> 
- 
-                                <Button 
-                                    text="Refresh" 
-                                    icon="sap-icon://refresh" 
-                                    type="Transparent" 
-                                    press=".onRefreshInventory"/> 
-                            </Toolbar> 
- 
-                            <Table 
-                                id="inventoryTable" 
-                                width="100%" 
-                                growing="true" 
-                                growingThreshold="15" 
-                                noDataText="No inventory records available" 
-                                items="{ 
-                                    path: 'inventory>/Inventory', 
-                                    parameters: { 
-                                        $expand: 'warehouse' 
-                                    } 
-                                }"> 
- 
-                                <columns> 
- 
-                                    <Column> 
-                                        <Text text="Product Name"/> 
-                                    </Column> 
- 
-                                    <Column> 
-                                        <Text text="Warehouse"/> 
-                                    </Column> 
- 
-                                    <Column hAlign="Center"> 
-                                        <Text text="Stock Level"/> 
-                                    </Column> 
- 
-                                    <Column hAlign="End"> 
-                                        <Text text="Stock Qty"/> 
-                                    </Column> 
- 
-                                    <Column hAlign="End"> 
-                                        <Text text="Reserved"/> 
-                                    </Column> 
- 
-                                    <Column hAlign="End"> 
-                                        <Text text="Available"/> 
-                                    </Column> 
- 
-                                    <Column> 
-                                        <Text text="Last Updated"/> 
-                                    </Column> 
- 
-                                    <Column hAlign="Center"> 
-                                        <Text text="Actions"/> 
-                                    </Column> 
- 
-                                </columns> 
- 
-                                <items> 
-                                    <ColumnListItem> 
-                                        <cells> 
- 
-                                            <Text 
-                                                text="{ 
-                                                    path: 'inventory>product_ID', 
-                                                    formatter: '.getProductName' 
-                                                }"/> 
- 
-                                            <ObjectIdentifier 
-                                                title="{inventory>warehouse/warehouseName}" 
-                                                text="{inventory>warehouse/warehouseCode}"/> 
- 
-                                            <ProgressIndicator 
-                                                percentValue="{= ${inventory>stockQty} > 0 ? ((${inventory>stockQty} - ${inventory>reservedQty}) / ${inventory>stockQty}) * 100 : 0 }" 
-                                                displayValue="{= ${inventory>stockQty} > 0 ? Math.round((${inventory>stockQty} - ${inventory>reservedQty}) / ${inventory>stockQty} * 100) + '%' : '0%' }" 
-                                                width="8rem"/> 
- 
-                                            <ObjectNumber 
-                                                number="{inventory>stockQty}"/> 
- 
-                                            <ObjectNumber 
-                                                number="{inventory>reservedQty}" 
-                                                state="Warning"/> 
- 
-                                            <ObjectNumber 
-                                                number="{= ${inventory>stockQty} - ${inventory>reservedQty} }" 
-                                                state="{= (${inventory>stockQty} - ${inventory>reservedQty}) > 0 ? 'Success' : 'Error' }"/> 
- 
-                                            <Text 
-                                                text="{ 
-                                                    path: 'inventory>lastUpdated', 
-                                                    formatter: '.formatter.formatDateTime' 
-                                                }"/> 
- 
-                                            <MenuButton 
-                                                text="Manage Stock" 
-                                                type="Emphasized" 
-                                                useDefaultActionOnly="false"> 
- 
-                                                <menu> 
-                                                    <Menu> 
- 
-                                                        <MenuItem 
-                                                            text="Adjust Stock" 
-                                                            icon="sap-icon://add" 
-                                                            press=".onAdjustStock"/> 
- 
-                                                        <MenuItem 
-                                                            text="Reserve Stock" 
-                                                            icon="sap-icon://locked" 
-                                                            press=".onReserveStock"/> 
- 
-                                                        <MenuItem 
-                                                            text="Release Stock" 
-                                                            icon="sap-icon://unlocked" 
-                                                            press=".onReleaseStock"/> 
- 
-                                                    </Menu> 
-                                                </menu> 
- 
-                                            </MenuButton> 
- 
-                                        </cells> 
-                                    </ColumnListItem> 
-                                </items> 
- 
-                            </Table> 
- 
-                        </VBox> 
-                    </IconTabFilter> 
- 
-                </items> 
- 
-            </IconTabBar> 
-        </content> 
- 
-    </Page> 
- 
+<mvc:View
+    controllerName="sales.controller.View1"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:tnt="sap.tnt"
+    xmlns:core="sap.ui.core"
+    xmlns:suite="sap.suite.ui.microchart"
+    displayBlock="true">
+
+    <tnt:ToolPage id="toolPage">
+
+        <!-- <tnt:header>
+            <tnt:ToolHeader>
+                <Button icon="sap-icon://menu2" press=".onSideNavToggle" type="Transparent"/>
+                <Title text="SAP" class="sapUiTinyMarginBegin" level="H4"/>
+                <Title text="Sales &amp; Inventory" level="H3" class="sapUiSmallMarginBegin"/>
+                <ToolbarSpacer/>
+                <Avatar initials="DU" displaySize="S"/>
+            </tnt:ToolHeader>
+        </tnt:header> -->
+
+        <tnt:sideContent>
+            <tnt:SideNavigation id="sideNav" selectedKey="{local>/currentPage}" itemSelect=".onSideNavItemSelect">
+                <tnt:item>
+                    <tnt:NavigationList id="_IDGenNavigationList">
+                        <tnt:NavigationListItem id="_IDGenNavigationListItem" text="Dashboard" icon="sap-icon://home" key="dashboard"/>
+                        <tnt:NavigationListItem id="_IDGenNavigationListItem1" text="Products" icon="sap-icon://product" key="products"/>
+                        <tnt:NavigationListItem id="_IDGenNavigationListItem2" text="Sales" icon="sap-icon://sales-order" key="sales"/>
+                        <tnt:NavigationListItem id="_IDGenNavigationListItem3" text="Inventory" icon="sap-icon://inventory" key="inventory"/>
+                    </tnt:NavigationList>
+                </tnt:item>
+                <tnt:fixedItem>
+                    <tnt:NavigationList id="_IDGenNavigationList1">
+                        <tnt:NavigationListItem id="_IDGenNavigationListItem4" text="Reports" expanded="true">
+                            <tnt:items>
+                                <tnt:NavigationListItem id="_IDGenNavigationListItem5" text="Analytics" key="analytics"/>
+                            </tnt:items>
+                        </tnt:NavigationListItem>
+                    </tnt:NavigationList>
+                </tnt:fixedItem>
+            </tnt:SideNavigation>
+        </tnt:sideContent>
+
+        <tnt:mainContents>
+            <Page id="view1Page" showHeader="false" enableScrolling="true">
+                <content>
+
+                    <!-- ========================================================= -->
+                    <!-- DASHBOARD -->
+                    <!-- ========================================================= -->
+
+                    <VBox id="_IDGenVBox1" class="sapUiMediumMargin" visible="{= ${local>/currentPage} === 'dashboard' }">
+
+                        <Title id="_IDGenTitle" text="Dashboard" level="H2" class="dashboardPageTitle"/>
+                        <Text id="_IDGenText" text="Overview of sales and inventory activity" class="dashboardPageSubtitle sapUiTinyMarginTop sapUiMediumMarginBottom"/>
+
+                        <!-- KPI CARDS: CSS GRID, 4 equal columns -->
+                        <VBox id="_IDGenVBox2" class="dashboardKpiGrid">
+
+                            <VBox id="_IDGenVBox3" class="dashboardCard">
+                                <VBox id="_IDGenVBox4" class="dashboardCardBar barBlue"/>
+                                <HBox id="_IDGenHBox" justifyContent="SpaceBetween" class="sapUiSmallMargin" alignItems="Start">
+                                    <VBox id="_IDGenVBox5">
+                                        <Text id="_IDGenText1" text="Total Revenue" class="dashboardCardTitle"/>
+                                        <Text id="_IDGenText2" text="All time" class="dashboardCardSubtitle"/>
+                                    </VBox>
+                                    <core:Icon id="_IDGenIcon" src="sap-icon://money-bills" class="dashboardCardIcon iconBlue"/>
+                                </HBox>
+                                <Text id="_IDGenText3" text="{local>/analytics/totalRevenue}" class="dashboardCardNumber sapUiSmallMarginBegin"/>
+                                <HBox id="_IDGenHBox1" class="sapUiSmallMargin" alignItems="Center">
+                                    <core:Icon id="_IDGenIcon1" src="sap-icon://trend-up" class="trendUp"/>
+                                    <Text id="_IDGenText4" text="12% vs last 7 days" class="trendUpText sapUiTinyMarginBegin"/>
+                                </HBox>
+                            </VBox>
+
+                            <VBox id="_IDGenVBox6" class="dashboardCard">
+                                <VBox id="_IDGenVBox7" class="dashboardCardBar barOrange"/>
+                                <HBox id="_IDGenHBox2" justifyContent="SpaceBetween" class="sapUiSmallMargin" alignItems="Start">
+                                    <VBox id="_IDGenVBox8">
+                                        <Text id="_IDGenText5" text="Total Sales" class="dashboardCardTitle"/>
+                                        <Text id="_IDGenText6" text="All statuses" class="dashboardCardSubtitle"/>
+                                    </VBox>
+                                    <core:Icon id="_IDGenIcon2" src="sap-icon://sales-order" class="dashboardCardIcon iconOrange"/>
+                                </HBox>
+                                <Text id="_IDGenText7" text="{local>/analytics/totalSalesCount}" class="dashboardCardNumber sapUiSmallMarginBegin"/>
+                                <Text id="_IDGenText8" text="No change" class="sapUiSmallMargin dashboardCardSubtitle"/>
+                            </VBox>
+
+                            <VBox id="_IDGenVBox9" class="dashboardCard">
+                                <VBox id="_IDGenVBox10" class="dashboardCardBar barGreen"/>
+                                <HBox id="_IDGenHBox3" justifyContent="SpaceBetween" class="sapUiSmallMargin" alignItems="Start">
+                                    <VBox id="_IDGenVBox11">
+                                        <Text id="_IDGenText9" text="Average Sale Value" class="dashboardCardTitle"/>
+                                        <Text id="_IDGenText10" text="Per order" class="dashboardCardSubtitle"/>
+                                    </VBox>
+                                    <core:Icon id="_IDGenIcon3" src="sap-icon://cart" class="dashboardCardIcon iconGreen"/>
+                                </HBox>
+                                <Text id="_IDGenText11" text="{local>/analytics/avgSaleValue}" class="dashboardCardNumber sapUiSmallMarginBegin"/>
+                                <HBox id="_IDGenHBox4" class="sapUiSmallMargin" alignItems="Center">
+                                    <core:Icon id="_IDGenIcon4" src="sap-icon://trend-up" class="trendUp"/>
+                                    <Text id="_IDGenText12" text="8% vs last 7 days" class="trendUpText sapUiTinyMarginBegin"/>
+                                </HBox>
+                            </VBox>
+
+                            <VBox id="_IDGenVBox12" class="dashboardCard">
+                                <VBox id="_IDGenVBox13" class="dashboardCardBar barRed"/>
+                                <HBox id="_IDGenHBox5" justifyContent="SpaceBetween" class="sapUiSmallMargin" alignItems="Start">
+                                    <VBox id="_IDGenVBox14">
+                                        <Text id="_IDGenText13" text="Completion Rate" class="dashboardCardTitle"/>
+                                        <Text id="_IDGenText14" text="Needs attention" class="dashboardCardSubtitle"/>
+                                    </VBox>
+                                    <core:Icon id="_IDGenIcon5" src="sap-icon://alert" class="dashboardCardIcon iconRed"/>
+                                </HBox>
+                                <Text id="_IDGenText15" text="{local>/analytics/completionRate}" class="dashboardCardNumber sapUiSmallMarginBegin"/>
+                                <HBox id="_IDGenHBox6" class="sapUiSmallMargin" alignItems="Center">
+                                    <core:Icon id="_IDGenIcon6" src="sap-icon://trend-up" class="trendUp"/>
+                                    <Text id="_IDGenText16" text="15% vs last 7 days" class="trendUpText sapUiTinyMarginBegin"/>
+                                </HBox>
+                            </VBox>
+
+                        </VBox>
+
+                        <!-- RECENT SALES -->
+                        <Panel id="_IDGenPanel" class="sapUiMediumMarginTop">
+                            <headerToolbar>
+                                <Toolbar id="_IDGenToolbar">
+                                    <Title id="_IDGenTitle1" text="Recent Sales" level="H3"/>
+                                    <ToolbarSpacer id="_IDGenToolbarSpacer"/>
+                                    <Link id="_IDGenLink" text="View all sales" press=".onViewAllSales"/>
+                                </Toolbar>
+                            </headerToolbar>
+
+                            <Table id="_IDGenTable" items="{local>/sales}" noDataText="No data">
+                                <columns>
+                                    <Column id="_IDGenColumn"><Text id="_IDGenText17" text="SALE NUMBER"/></Column>
+                                    <Column id="_IDGenColumn1"><Text id="_IDGenText18" text="CUSTOMER"/></Column>
+                                    <Column id="_IDGenColumn2"><Text id="_IDGenText19" text="PRODUCT"/></Column>
+                                    <Column id="_IDGenColumn3"><Text id="_IDGenText20" text="STATUS"/></Column>
+                                    <Column id="_IDGenColumn4" hAlign="End"><Text id="_IDGenText21" text="AMOUNT"/></Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem id="_IDGenColumnListItem">
+                                        <cells>
+                                            <Text id="_IDGenText22" text="{local>saleNumber}"/>
+                                            <Text id="_IDGenText23" text="{local>customer/customerName}"/>
+                                            <Text id="_IDGenText24" text="{local>product/productName}"/>
+                                            <ObjectStatus id="_IDGenObjectStatus" text="{local>status}" state="None"/>
+                                            <ObjectNumber id="_IDGenObjectNumber" number="{local>totalAmount}" unit="INR"/>
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+                        </Panel>
+
+                        <!-- PROJECT OVERVIEW (Analytics summary) -->
+                        <Panel id="_IDGenPanel1" class="sapUiMediumMarginTop">
+                            <headerToolbar>
+                                <Toolbar id="_IDGenToolbar1">
+                                    <Title id="_IDGenTitle2" text="Project Overview" level="H3"/>
+                                    <ToolbarSpacer id="_IDGenToolbarSpacer1"/>
+                                    <Link id="_IDGenLink1" text="View full analytics" press=".onViewAllAnalytics"/>
+                                </Toolbar>
+                            </headerToolbar>
+
+                            <HBox id="_IDGenHBox7" wrap="Wrap" class="sapUiSmallMargin dashboardOverviewGrid" justifyContent="SpaceBetween">
+
+                                <VBox id="_IDGenVBox15" class="overviewChartBox">
+                                    <Title id="_IDGenTitle3" text="Sales Trend" level="H5" class="sapUiTinyMarginBottom"/>
+                                    <suite:InteractiveLineChart id="_IDGenInteractiveLineChart" points="{local>/analytics/salesTrend}">
+                                        <suite:points>
+                                            <suite:InteractiveLineChartPoint id="_IDGenInteractiveLineChartPoint" label="{local>label}" value="{local>value}"/>
+                                        </suite:points>
+                                    </suite:InteractiveLineChart>
+                                </VBox>
+
+                                <VBox id="_IDGenVBox16" class="overviewChartBox">
+                                    <Title id="_IDGenTitle4" text="Sales by Category" level="H5" class="sapUiTinyMarginBottom"/>
+                                    <List id="_IDGenList" items="{local>/analytics/categoryBreakdown}" noDataText="No category data">
+                                        <CustomListItem id="_IDGenCustomListItem">
+                                            <VBox id="_IDGenVBox17" class="sapUiTinyMargin" width="100%">
+                                                <Text id="_IDGenText25" text="{local>category}"/>
+                                                <ProgressIndicator id="_IDGenProgressIndicator" percentValue="{local>percent}" displayValue="{local>percent}%" state="Success" width="100%"/>
+                                            </VBox>
+                                        </CustomListItem>
+                                    </List>
+                                </VBox>
+
+                                <VBox id="_IDGenVBox18" class="overviewChartBox">
+                                    <Title id="_IDGenTitle5" text="Top Products by Revenue" level="H5" class="sapUiTinyMarginBottom"/>
+                                    <suite:ComparisonMicroChart id="_IDGenComparisonMicroChart" data="{local>/analytics/topProducts}">
+                                        <suite:data>
+                                            <suite:ComparisonMicroChartData id="_IDGenComparisonMicroChartData" title="{local>title}" value="{local>value}"/>
+                                        </suite:data>
+                                    </suite:ComparisonMicroChart>
+                                </VBox>
+
+                            </HBox>
+                        </Panel>
+
+                    </VBox>
+
+
+                    <!-- ========================================================= -->
+                    <!-- TABBED SECTION: PRODUCTS / SALES / INVENTORY / ANALYTICS -->
+                    <!-- ========================================================= -->
+
+                    <IconTabBar
+                        id="mainTabBar"
+                        expandable="false"
+                        selectedKey="{local>/currentPage}"
+                        select=".onTabSelect"
+                        visible="{= ${local>/currentPage} !== 'dashboard' }"
+                        class="sapUiResponsiveContentPadding">
+
+                        <items>
+
+                            <!-- PRODUCTS -->
+                            <IconTabFilter id="productsTab" key="products" text="Products" icon="sap-icon://product">
+                                <VBox id="_IDGenVBox19" class="sapUiSmallMargin">
+                                    <Toolbar id="_IDGenToolbar2">
+                                        <Title id="_IDGenTitle6" text="Products" level="H2"/>
+                                        <ToolbarSpacer id="_IDGenToolbarSpacer2"/>
+                                        <Button id="_IDGenButton" text="Refresh" icon="sap-icon://refresh" press=".onRefresh" class="sapUiTinyMarginBegin"/>
+                                    </Toolbar>
+
+                                    <Table
+                                        id="productsTable"
+                                        growing="true"
+                                        growingThreshold="20"
+                                        noDataText="No products available"
+                                        items="{local>/products}"
+                                        selectionChange=".onProductSelectionChange">
+
+                                        <columns>
+                                            <Column id="_IDGenColumn5"><Text id="_IDGenText26" text="Product Code"/></Column>
+                                            <Column id="_IDGenColumn6"><Text id="_IDGenText27" text="Product Name"/></Column>
+                                            <Column id="_IDGenColumn7"><Text id="_IDGenText28" text="Category"/></Column>
+                                            <Column id="_IDGenColumn8" hAlign="End"><Text id="_IDGenText29" text="Unit Price"/></Column>
+                                            <Column id="_IDGenColumn9" hAlign="End"><Text id="_IDGenText30" text="Stock Qty"/></Column>
+                                            <Column id="_IDGenColumn10"><Text id="_IDGenText31" text="Status"/></Column>
+                                        </columns>
+
+                                        <items>
+                                            <ColumnListItem id="_IDGenColumnListItem1">
+                                                <cells>
+                                                    <Text id="_IDGenText32" text="{local>productCode}"/>
+                                                    <Text id="_IDGenText33" text="{local>productName}"/>
+                                                    <Text id="_IDGenText34" text="{local>category/categoryName}"/>
+                                                    <ObjectNumber id="_IDGenObjectNumber1" number="{local>unitPrice}" unit="INR"/>
+                                                    <ObjectNumber id="_IDGenObjectNumber2" number="{local>stockQty}"/>
+                                                    <ObjectStatus id="_IDGenObjectStatus1" text="{local>status}" state="None"/>
+                                                </cells>
+                                            </ColumnListItem>
+                                        </items>
+                                    </Table>
+                                </VBox>
+                            </IconTabFilter>
+
+
+                            <!-- SALES -->
+                            <IconTabFilter id="salesTab" key="sales" text="Sales" icon="sap-icon://sales-order">
+                                <VBox id="_IDGenVBox20" class="sapUiSmallMargin">
+                                    <Toolbar id="_IDGenToolbar3">
+                                        <Title id="_IDGenTitle7" text="Sales" level="H2"/>
+                                        <ToolbarSpacer id="_IDGenToolbarSpacer3"/>
+                                        <Button id="newSaleButton" text="New Sale" icon="sap-icon://add" type="Emphasized" press=".onNewSale"/>
+                                        <Button id="completeSaleButton" text="Complete" icon="sap-icon://accept" type="Accept" enabled="false" press=".onCompleteSale" class="sapUiTinyMarginBegin"/>
+                                        <Button id="cancelSaleButton" text="Cancel" icon="sap-icon://decline" type="Reject" enabled="false" press=".onCancelSale" class="sapUiTinyMarginBegin"/>
+                                        <Button id="refreshSalesButton" text="Refresh" icon="sap-icon://refresh" press=".onRefresh" class="sapUiTinyMarginBegin"/>
+                                    </Toolbar>
+
+                                    <Table
+                                        id="salesTable"
+                                        mode="SingleSelectLeft"
+                                        growing="true"
+                                        growingThreshold="20"
+                                        noDataText="No sales available"
+                                        items="{local>/sales}"
+                                        selectionChange=".onSaleSelectionChange">
+
+                                        <columns>
+                                            <Column id="_IDGenColumn11"><Text id="_IDGenText35" text="Sale Number"/></Column>
+                                            <Column id="_IDGenColumn12"><Text id="_IDGenText36" text="Customer"/></Column>
+                                            <Column id="_IDGenColumn13"><Text id="_IDGenText37" text="Product"/></Column>
+                                            <Column id="_IDGenColumn14" hAlign="End"><Text id="_IDGenText38" text="Quantity"/></Column>
+                                            <Column id="_IDGenColumn15" hAlign="End"><Text id="_IDGenText39" text="Unit Price"/></Column>
+                                            <Column id="_IDGenColumn16" hAlign="End"><Text id="_IDGenText40" text="Total Amount"/></Column>
+                                            <Column id="_IDGenColumn17"><Text id="_IDGenText41" text="Sale Date"/></Column>
+                                            <Column id="_IDGenColumn18"><Text id="_IDGenText42" text="Status"/></Column>
+                                        </columns>
+
+                                        <items>
+                                            <ColumnListItem id="_IDGenColumnListItem2">
+                                                <cells>
+                                                    <Text id="_IDGenText43" text="{local>saleNumber}"/>
+                                                    <Text id="_IDGenText44" text="{local>customer/customerName}"/>
+                                                    <Text id="_IDGenText45" text="{local>product/productName}"/>
+                                                    <ObjectNumber id="_IDGenObjectNumber3" number="{local>quantity}"/>
+                                                    <ObjectNumber id="_IDGenObjectNumber4" number="{local>unitPrice}" unit="INR"/>
+                                                    <ObjectNumber id="_IDGenObjectNumber5" number="{local>totalAmount}" unit="INR"/>
+                                                    <Text id="_IDGenText46" text="{local>saleDate}"/>
+                                                    <ObjectStatus id="_IDGenObjectStatus2" text="{local>status}" state="None"/>
+                                                </cells>
+                                            </ColumnListItem>
+                                        </items>
+                                    </Table>
+                                </VBox>
+                            </IconTabFilter>
+
+
+                            <!-- INVENTORY -->
+                            <IconTabFilter id="inventoryTab" key="inventory" text="Inventory" icon="sap-icon://inventory">
+                                <VBox id="_IDGenVBox21" class="sapUiSmallMargin">
+                                    <Toolbar id="_IDGenToolbar4">
+                                        <Title id="_IDGenTitle8" text="Stock Overview" level="H2"/>
+                                        <ToolbarSpacer id="_IDGenToolbarSpacer4"/>
+                                        <Button id="_IDGenButton1" text="Refresh" icon="sap-icon://refresh" type="Transparent" press=".onRefreshInventory"/>
+                                    </Toolbar>
+
+                                    <Table
+                                        id="inventoryTable"
+                                        width="100%"
+                                        growing="true"
+                                        growingThreshold="15"
+                                        noDataText="No inventory records available"
+                                        items="{
+                                            path: 'inventory>/Inventory',
+                                            parameters: {
+                                                $expand: 'warehouse'
+                                            }
+                                        }">
+
+                                        <columns>
+                                            <Column id="_IDGenColumn19"><Text id="_IDGenText47" text="Product Name"/></Column>
+                                            <Column id="_IDGenColumn20"><Text id="_IDGenText48" text="Warehouse"/></Column>
+                                            <Column id="_IDGenColumn21" hAlign="Center"><Text id="_IDGenText49" text="Stock Level"/></Column>
+                                            <Column id="_IDGenColumn22" hAlign="End"><Text id="_IDGenText50" text="Stock Qty"/></Column>
+                                            <Column id="_IDGenColumn23" hAlign="End"><Text id="_IDGenText51" text="Reserved"/></Column>
+                                            <Column id="_IDGenColumn24" hAlign="End"><Text id="_IDGenText52" text="Available"/></Column>
+                                            <Column id="_IDGenColumn25"><Text id="_IDGenText53" text="Last Updated"/></Column>
+                                            <Column id="_IDGenColumn26" hAlign="Center"><Text id="_IDGenText54" text="Actions"/></Column>
+                                        </columns>
+
+                                        <items>
+                                            <ColumnListItem id="_IDGenColumnListItem3">
+                                                <cells>
+
+                                                    <Text id="_IDGenText55" text="{ path: 'inventory>product_ID', formatter: '.getProductName' }"/>
+
+                                                    <ObjectIdentifier id="_IDGenObjectIdentifier"
+                                                        title="{inventory>warehouse/warehouseName}"
+                                                        text="{inventory>warehouse/warehouseCode}"/>
+
+                                                    <ProgressIndicator id="_IDGenProgressIndicator1"
+                                                        percentValue="{= ${inventory>stockQty} > 0 ? ((${inventory>stockQty} - ${inventory>reservedQty}) / ${inventory>stockQty}) * 100 : 0 }"
+                                                        displayValue="{= ${inventory>stockQty} > 0 ? Math.round((${inventory>stockQty} - ${inventory>reservedQty}) / ${inventory>stockQty} * 100) + '%' : '0%' }"
+                                                        width="8rem"/>
+
+                                                    <ObjectNumber id="_IDGenObjectNumber6" number="{inventory>stockQty}"/>
+                                                    <ObjectNumber id="_IDGenObjectNumber7" number="{inventory>reservedQty}" state="Warning"/>
+
+                                                    <ObjectNumber id="_IDGenObjectNumber8"
+                                                        number="{= ${inventory>stockQty} - ${inventory>reservedQty} }"
+                                                        state="{= (${inventory>stockQty} - ${inventory>reservedQty}) > 0 ? 'Success' : 'Error' }"/>
+
+                                                    <Text id="_IDGenText56" text="{ path: 'inventory>lastUpdated', formatter: '.formatter.formatDateTime' }"/>
+
+                                                    <MenuButton id="_IDGenMenuButton" text="Manage Stock" type="Emphasized" useDefaultActionOnly="false">
+                                                        <menu>
+                                                            <Menu id="_IDGenMenu">
+                                                                <MenuItem id="_IDGenMenuItem" text="Adjust Stock" icon="sap-icon://add" press=".onAdjustStock"/>
+                                                                <MenuItem id="_IDGenMenuItem1" text="Reserve Stock" icon="sap-icon://locked" press=".onReserveStock"/>
+                                                                <MenuItem id="_IDGenMenuItem2" text="Release Stock" icon="sap-icon://unlocked" press=".onReleaseStock"/>
+                                                            </Menu>
+                                                        </menu>
+                                                    </MenuButton>
+
+                                                </cells>
+                                            </ColumnListItem>
+                                        </items>
+                                    </Table>
+                                </VBox>
+                            </IconTabFilter>
+
+
+                            <!-- ANALYTICS -->
+                            <IconTabFilter id="analyticsTab" key="analytics" text="Analytics" icon="sap-icon://bar-chart">
+                                <VBox id="_IDGenVBox22" class="sapUiSmallMargin">
+                                    <Toolbar id="_IDGenToolbar5">
+                                        <Title id="_IDGenTitle9" text="Analytics Dashboard" level="H2"/>
+                                        <ToolbarSpacer id="_IDGenToolbarSpacer5"/>
+                                        <Button id="_IDGenButton2" text="Refresh" icon="sap-icon://refresh" press=".onRefreshAnalytics"/>
+                                    </Toolbar>
+
+                                    <HBox id="_IDGenHBox8" wrap="Wrap" class="sapUiSmallMarginTop" justifyContent="SpaceBetween">
+
+                                        <GenericTile id="_IDGenGenericTile" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="Total Revenue" frameType="TwoByOne">
+                                            <TileContent id="_IDGenTileContent">
+                                                <NumericContent id="_IDGenNumericContent" value="{local>/analytics/totalRevenue}" scale="INR" valueColor="Good" withMargin="false"/>
+                                            </TileContent>
+                                        </GenericTile>
+
+                                        <GenericTile id="_IDGenGenericTile1" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="Total Sales" frameType="TwoByOne">
+                                            <TileContent id="_IDGenTileContent1">
+                                                <NumericContent id="_IDGenNumericContent1" value="{local>/analytics/totalSalesCount}" valueColor="Neutral" withMargin="false"/>
+                                            </TileContent>
+                                        </GenericTile>
+
+                                        <GenericTile id="_IDGenGenericTile2" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" header="Average Sale Value" frameType="TwoByOne">
+                                            <TileContent id="_IDGenTileContent2">
+                                                <NumericContent id="_IDGenNumericContent2" value="{local>/analytics/avgSaleValue}" scale="INR" valueColor="Neutral" withMargin="false"/>
+                                            </TileContent>
+                                        </GenericTile>
+
+                                        <GenericTile id="_IDGenGenericTile3" class="sapUiTinyMarginBottom" header="Completion Rate" frameType="TwoByOne">
+                                            <TileContent id="_IDGenTileContent3">
+                                                <NumericContent id="_IDGenNumericContent3" value="{local>/analytics/completionRate}" scale="%" valueColor="Good" withMargin="false"/>
+                                            </TileContent>
+                                        </GenericTile>
+
+                                    </HBox>
+
+                                    <HBox id="_IDGenHBox9" wrap="Wrap" class="sapUiMediumMarginTop" justifyContent="SpaceBetween">
+
+                                        <VBox id="_IDGenVBox23" class="sapUiSmallMarginEnd sapUiSmallMarginBottom" width="32%">
+                                            <Title id="_IDGenTitle10" text="Sales Trend" level="H4" class="sapUiTinyMarginBottom"/>
+                                            <suite:InteractiveLineChart id="_IDGenInteractiveLineChart1" points="{local>/analytics/salesTrend}">
+                                                <suite:points>
+                                                    <suite:InteractiveLineChartPoint id="_IDGenInteractiveLineChartPoint1" label="{local>label}" value="{local>value}"/>
+                                                </suite:points>
+                                            </suite:InteractiveLineChart>
+                                        </VBox>
+
+                                        <VBox id="_IDGenVBox24" class="sapUiSmallMarginEnd sapUiSmallMarginBottom" width="32%">
+                                            <Title id="_IDGenTitle11" text="Sales by Category" level="H4" class="sapUiTinyMarginBottom"/>
+                                            <List id="_IDGenList1" items="{local>/analytics/categoryBreakdown}" noDataText="No category data">
+                                                <CustomListItem id="_IDGenCustomListItem1">
+                                                    <VBox id="_IDGenVBox25" class="sapUiTinyMargin" width="100%">
+                                                        <Text id="_IDGenText57" text="{local>category}"/>
+                                                        <ProgressIndicator id="_IDGenProgressIndicator2" percentValue="{local>percent}" displayValue="{local>percent}%" state="Success" width="100%"/>
+                                                    </VBox>
+                                                </CustomListItem>
+                                            </List>
+                                        </VBox>
+
+                                        <VBox id="_IDGenVBox26" class="sapUiSmallMarginBottom" width="32%">
+                                            <Title id="_IDGenTitle12" text="Top Products by Revenue" level="H4" class="sapUiTinyMarginBottom"/>
+                                            <suite:ComparisonMicroChart id="_IDGenComparisonMicroChart1" data="{local>/analytics/topProducts}">
+                                                <suite:data>
+                                                    <suite:ComparisonMicroChartData id="_IDGenComparisonMicroChartData1" title="{local>title}" value="{local>value}"/>
+                                                </suite:data>
+                                            </suite:ComparisonMicroChart>
+                                        </VBox>
+
+                                    </HBox>
+
+                                </VBox>
+                            </IconTabFilter>
+
+                        </items>
+                    </IconTabBar>
+
+                </content>
+            </Page>
+        </tnt:mainContents>
+
+    </tnt:ToolPage>
+
 </mvc:View>
