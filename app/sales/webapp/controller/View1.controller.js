@@ -88,8 +88,7 @@ sap.ui.define([
                     );
                 }
 
-                const data =
-                    await response.json();
+                const data = await response.json();
 
                 this.oLocalModel.setProperty(
                     "/products",
@@ -136,8 +135,15 @@ sap.ui.define([
 
             try {
 
+                /*
+                 * Sort Sales by saleDate in ascending order.
+                 *
+                 * Oldest sale  -> top
+                 * Newest sale  -> bottom
+                 */
+
                 const response = await fetch(
-                    "/odata/v4/sales-inventory/Sales?$expand=customer,product"
+                    "/odata/v4/sales-inventory/Sales?$expand=customer,product&$orderby=saleDate asc"
                 );
 
                 if (!response.ok) {
@@ -150,8 +156,7 @@ sap.ui.define([
                     );
                 }
 
-                const data =
-                    await response.json();
+                const data = await response.json();
 
                 this.oLocalModel.setProperty(
                     "/sales",
@@ -195,8 +200,7 @@ sap.ui.define([
                     );
                 }
 
-                const data =
-                    await response.json();
+                const data = await response.json();
 
                 this.oLocalModel.setProperty(
                     "/customers",
@@ -235,9 +239,15 @@ sap.ui.define([
 
         onSaleSelectionChange: function (oEvent) {
 
-            this.oSelectedSale =
-                oEvent.getParameter("listItem");
-        },
+    this.oSelectedSale = oEvent.getParameter("listItem");
+
+    const bSelected = !!this.oSelectedSale;
+
+    this.byId("newSaleButton").setEnabled(bSelected);
+    this.byId("completeSaleButton").setEnabled(bSelected);
+    this.byId("cancelSaleButton").setEnabled(bSelected);
+    this.byId("refreshSalesButton").setEnabled(bSelected);
+},
 
 
         // =========================================================
@@ -343,6 +353,10 @@ sap.ui.define([
                 }
 
 
+                // -------------------------------------------------
+                // CUSTOMER SELECT
+                // -------------------------------------------------
+
                 const oCustomerSelect =
                     new Select({
                         width: "100%"
@@ -363,6 +377,10 @@ sap.ui.define([
                     }
                 );
 
+
+                // -------------------------------------------------
+                // PRODUCT SELECT
+                // -------------------------------------------------
 
                 const oProductSelect =
                     new Select({
@@ -396,6 +414,10 @@ sap.ui.define([
                 );
 
 
+                // -------------------------------------------------
+                // QUANTITY
+                // -------------------------------------------------
+
                 const oQuantityInput =
                     new Input({
                         type: "Number",
@@ -405,6 +427,10 @@ sap.ui.define([
                             "Enter quantity"
                     });
 
+
+                // -------------------------------------------------
+                // DIALOG
+                // -------------------------------------------------
 
                 const oDialog =
                     new Dialog({
@@ -461,6 +487,10 @@ sap.ui.define([
                                 "sapUiSmallMargin"
                             ),
 
+
+                        // -------------------------------------------------
+                        // CREATE SALE BUTTON
+                        // -------------------------------------------------
 
                         beginButton:
                             new Button({
@@ -608,6 +638,10 @@ sap.ui.define([
                             }),
 
 
+                        // -------------------------------------------------
+                        // CANCEL BUTTON
+                        // -------------------------------------------------
+
                         endButton:
                             new Button({
 
@@ -666,6 +700,26 @@ sap.ui.define([
             oSaleData
         ) {
 
+            /*
+             * IMPORTANT:
+             *
+             * Do NOT send:
+             *     saleNumber
+             *     status
+             *     unitPrice
+             *     totalAmount
+             *     saleDate
+             *
+             * Backend service.js handles these values.
+             *
+             * Backend will create:
+             *     saleNumber = SO000XX
+             *     status = Pending
+             *     unitPrice = Product.unitPrice
+             *     totalAmount = quantity * unitPrice
+             *     saleDate = current date/time
+             */
+
             const response =
                 await fetch(
                     "/odata/v4/sales-inventory/Sales",
@@ -673,6 +727,7 @@ sap.ui.define([
                         method: "POST",
 
                         headers: {
+
                             "Content-Type":
                                 "application/json",
 
@@ -690,10 +745,7 @@ sap.ui.define([
                                     oSaleData.productID,
 
                                 quantity:
-                                    oSaleData.quantity,
-
-                                status:
-                                    "CREATED"
+                                    oSaleData.quantity
 
                             })
                     }
@@ -738,13 +790,33 @@ sap.ui.define([
                 await response.json();
 
 
+            /*
+             * Reload Sales.
+             *
+             * _loadSales() uses:
+             *
+             * $orderby=saleDate asc
+             *
+             * Therefore the newly created sale
+             * will appear at the bottom.
+             */
+
             await this._loadSales();
+
+
+            /*
+             * Product stock is not decreased when
+             * creating a Pending sale.
+             *
+             * Stock decreases only when Complete
+             * Sale is executed.
+             */
 
             await this._loadProducts();
 
 
             MessageToast.show(
-                "Sale created successfully with status CREATED."
+                "Sale created successfully. Status: Pending."
             );
 
 
@@ -795,7 +867,21 @@ sap.ui.define([
                 );
 
 
+                /*
+                 * Reload Sales so status changes
+                 * from Pending to Completed.
+                 */
+
                 await this._loadSales();
+
+
+                /*
+                 * Complete Sale decreases inventory
+                 * and synchronizes Product stock.
+                 */
+
+                await this._loadProducts();
+
 
                 this._clearSaleSelection();
 
@@ -883,6 +969,7 @@ sap.ui.define([
                         method: "POST",
 
                         headers: {
+
                             "Content-Type":
                                 "application/json",
 
@@ -956,14 +1043,6 @@ sap.ui.define([
         // =========================================================
         // GET PRODUCT NAME
         // =========================================================
-        //
-        // Inventory gives us product_ID.
-        // Products are stored in local>/products.
-        //
-        // We find the matching Product ID and return
-        // productName for the Inventory table.
-        //
-        // =========================================================
 
         getProductName: function (
             sProductId
@@ -985,9 +1064,8 @@ sap.ui.define([
 
             /*
              * Convert the incoming Inventory product ID
-             * to String so that the comparison works even
-             * if OData returns the value in a different
-             * primitive representation.
+             * to String so that comparison works even
+             * if OData returns the value differently.
              */
 
             const sId =
@@ -1002,39 +1080,49 @@ sap.ui.define([
                             return false;
                         }
 
+
                         /*
                          * Normal Product ID
                          */
+
                         if (
                             oP.ID !== undefined &&
                             oP.ID !== null &&
                             String(oP.ID) === sId
                         ) {
+
                             return true;
                         }
 
+
                         /*
-                         * Additional compatibility if
-                         * product_ID is present in Product data.
+                         * Compatibility if product_ID
+                         * is present in Product data.
                          */
+
                         if (
                             oP.product_ID !== undefined &&
                             oP.product_ID !== null &&
                             String(oP.product_ID) === sId
                         ) {
+
                             return true;
                         }
+
 
                         /*
                          * Compatibility for lower-case id.
                          */
+
                         if (
                             oP.id !== undefined &&
                             oP.id !== null &&
                             String(oP.id) === sId
                         ) {
+
                             return true;
                         }
+
 
                         return false;
                     }
@@ -1161,13 +1249,8 @@ sap.ui.define([
 
 
                 /*
-                 * Adjust Stock changes:
-                 *
-                 * Inventory.stockQty
-                 *          +
-                 * Products.stockQty
-                 *
-                 * Therefore reload Products.
+                 * Inventory stock changes are reflected
+                 * in Products.stockQty.
                  */
 
                 await this._loadProducts();
@@ -1422,6 +1505,7 @@ sap.ui.define([
                                 function () {
 
                                     oDialog.close();
+
                                 }
 
                         }),
@@ -1431,6 +1515,7 @@ sap.ui.define([
                         function () {
 
                             oDialog.destroy();
+
                         }
 
                 });
@@ -1632,4 +1717,3 @@ sap.ui.define([
 
     });
 });
-

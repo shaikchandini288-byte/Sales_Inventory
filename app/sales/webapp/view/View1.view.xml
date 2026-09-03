@@ -1,441 +1,409 @@
-<mvc:View
-    controllerName="sales.controller.View1"
-    xmlns:mvc="sap.ui.core.mvc"
-    xmlns="sap.m"
-    xmlns:core="sap.ui.core">
-
-    <Page
-        id="view1Page"
-        title="Sales &amp; Inventory Management"
-        enableScrolling="true">
-
-        <content>
-            <IconTabBar
-                id="mainTabBar"
-                expandable="false"
-                selectedKey="products"
-                class="sapUiResponsiveContentPadding">
-
-                <items>
-
-                    <!-- ================================================= -->
+<mvc:View 
+    controllerName="sales.controller.View1" 
+    xmlns:mvc="sap.ui.core.mvc" 
+    xmlns="sap.m" 
+    xmlns:core="sap.ui.core"> 
+ 
+    <Page 
+        id="view1Page" 
+        title="Sales &amp; Inventory Management" 
+        enableScrolling="true"> 
+ 
+        <content> 
+            <IconTabBar 
+                id="mainTabBar" 
+                expandable="false" 
+                selectedKey="products" 
+                class="sapUiResponsiveContentPadding"> 
+ 
+                <items> 
+ 
+                    <!-- ========================= -->
                     <!-- PRODUCTS -->
-                    <!-- ================================================= -->
-
-                    <IconTabFilter
-                        id="productsTab"
-                        key="products"
-                        text="Products"
-                        icon="sap-icon://product">
-
-                        <VBox class="sapUiSmallMargin">
-
-                            <Toolbar>
-                                <Title
-                                    text="Products"
-                                    level="H2"/>
-
-                                <ToolbarSpacer/>
-
-                                <Button
-                                    text="Refresh"
-                                    icon="sap-icon://refresh"
-                                    press=".onRefresh"/>
-                            </Toolbar>
-
-                            <Table
-                                id="productsTable"
-                                mode="SingleSelectLeft"
-                                growing="true"
-                                growingThreshold="20"
-                                noDataText="No products available"
-                                items="{local>/products}"
-                                selectionChange=".onProductSelectionChange">
-
-                                <columns>
-
-                                    <Column>
-                                        <Text text="Product Code"/>
-                                    </Column>
-
-                                    <Column>
-                                        <Text text="Product Name"/>
-                                    </Column>
-
-                                    <Column>
-                                        <Text text="Category"/>
-                                    </Column>
-
-                                    <Column hAlign="End">
-                                        <Text text="Unit Price"/>
-                                    </Column>
-
-                                    <Column hAlign="End">
-                                        <Text text="Stock Qty"/>
-                                    </Column>
-
-                                    <Column>
-                                        <Text text="Status"/>
-                                    </Column>
-
-                                </columns>
-
-                                <items>
-
-                                    <ColumnListItem>
-
-                                        <cells>
-
-                                            <Text
-                                                text="{local>productCode}"/>
-
-                                            <Text
-                                                text="{local>productName}"/>
-
-                                            <Text
-                                                text="{local>category/categoryName}"/>
-
-                                            <ObjectNumber
-                                                number="{local>unitPrice}"
-                                                unit="INR"/>
-
-                                            <!-- Stock Qty comes from Product -->
-                                            <!-- Product stock is synchronized -->
-                                            <!-- with Inventory by backend -->
-
-                                            <ObjectNumber
-                                                number="{local>stockQty}"
-                                                state="{
-                                                    path: 'local>stockQty',
-                                                    formatter: '.getProductStockState'
-                                                }"/>
-
-                                            <!-- Status is calculated from stockQty -->
-                                            <ObjectStatus
-                                                text="{
-                                                    path: 'local>stockQty',
-                                                    formatter: '.getProductStockStatus'
-                                                }"
-                                                state="{
-                                                    path: 'local>stockQty',
-                                                    formatter: '.getProductStockState'
-                                                }"/>
-
-                                        </cells>
-
-                                    </ColumnListItem>
-
-                                </items>
-
-                            </Table>
-
-                        </VBox>
-
-                    </IconTabFilter>
-
-
-                    <!-- ================================================= -->
+                    <!-- ========================= --> 
+ 
+                    <IconTabFilter 
+                        id="productsTab" 
+                        key="products" 
+                        text="Products" 
+                        icon="sap-icon://product"> 
+ 
+                        <VBox class="sapUiSmallMargin"> 
+ 
+                            <Toolbar> 
+                                <Title 
+                                    text="Products" 
+                                    level="H2"/> 
+ 
+                                <ToolbarSpacer/> 
+ 
+                                <Button 
+                                    text="Refresh" 
+                                    icon="sap-icon://refresh" 
+                                    press=".onRefresh" 
+                                    class="sapUiTinyMarginBegin"/> 
+                            </Toolbar> 
+ 
+                            <Table 
+                                id="productsTable" 
+                                growing="true" 
+                                growingThreshold="20" 
+                                noDataText="No products available" 
+                                items="{local>/products}" 
+                                selectionChange=".onProductSelectionChange"> 
+ 
+                                <columns> 
+                                    <Column> 
+                                        <Text text="Product Code"/> 
+                                    </Column> 
+ 
+                                    <Column> 
+                                        <Text text="Product Name"/> 
+                                    </Column> 
+ 
+                                    <Column> 
+                                        <Text text="Category"/> 
+                                    </Column> 
+ 
+                                    <Column hAlign="End"> 
+                                        <Text text="Unit Price"/> 
+                                    </Column> 
+ 
+                                    <Column hAlign="End"> 
+                                        <Text text="Stock Qty"/> 
+                                    </Column> 
+ 
+                                    <Column> 
+                                        <Text text="Status"/> 
+                                    </Column> 
+                                </columns> 
+ 
+                                <items> 
+                                    <ColumnListItem> 
+                                        <cells> 
+ 
+                                            <Text 
+                                                text="{local>productCode}"/> 
+ 
+                                            <Text 
+                                                text="{local>productName}"/> 
+ 
+                                            <Text 
+                                                text="{local>category/categoryName}"/> 
+ 
+                                            <ObjectNumber 
+                                                number="{local>unitPrice}" 
+                                                unit="INR"/> 
+ 
+                                            <ObjectNumber 
+                                                number="{local>stockQty}"/> 
+ 
+                                            <ObjectStatus 
+                                                text="{local>status}" 
+                                                state="None"/> 
+ 
+                                        </cells> 
+                                    </ColumnListItem> 
+                                </items> 
+ 
+                            </Table> 
+ 
+                        </VBox> 
+                    </IconTabFilter> 
+ 
+ 
+                    <!-- ========================= -->
                     <!-- SALES -->
-                    <!-- ================================================= -->
-
-                    <IconTabFilter
-                        id="salesTab"
-                        key="sales"
-                        text="Sales"
-                        icon="sap-icon://sales-order">
-
-                        <VBox class="sapUiSmallMargin">
-
-                            <Toolbar>
-
-                                <Title
-                                    text="Sales"
-                                    level="H2"/>
-
-                                <ToolbarSpacer/>
-
-                                <Button
-                                    text="New Sale"
-                                    icon="sap-icon://add"
-                                    type="Emphasized"
-                                    press=".onNewSale"/>
-
-                                <Button
-                                    text="Complete"
-                                    icon="sap-icon://accept"
-                                    type="Accept"
-                                    press=".onCompleteSale"
-                                    class="sapUiTinyMarginBegin"/>
-
-                                <Button
-                                    text="Cancel"
-                                    icon="sap-icon://decline"
-                                    type="Reject"
-                                    press=".onCancelSale"
-                                    class="sapUiTinyMarginBegin"/>
-
-                                <Button
-                                    text="Refresh"
-                                    icon="sap-icon://refresh"
-                                    press=".onRefresh"
-                                    class="sapUiTinyMarginBegin"/>
-
-                            </Toolbar>
-
-                            <Table
-                                id="salesTable"
-                                mode="SingleSelectLeft"
-                                growing="true"
-                                growingThreshold="20"
-                                noDataText="No sales available"
-                                items="{local>/sales}"
-                                selectionChange=".onSaleSelectionChange">
-
-                                <columns>
-
-                                    <Column>
-                                        <Text text="Sale Number"/>
-                                    </Column>
-
-                                    <Column>
-                                        <Text text="Customer"/>
-                                    </Column>
-
-                                    <Column>
-                                        <Text text="Product"/>
-                                    </Column>
-
-                                    <Column hAlign="End">
-                                        <Text text="Quantity"/>
-                                    </Column>
-
-                                    <Column hAlign="End">
-                                        <Text text="Unit Price"/>
-                                    </Column>
-
-                                    <Column hAlign="End">
-                                        <Text text="Total Amount"/>
-                                    </Column>
-
-                                    <Column>
-                                        <Text text="Sale Date"/>
-                                    </Column>
-
-                                    <Column>
-                                        <Text text="Status"/>
-                                    </Column>
-
-                                </columns>
-
-                                <items>
-
-                                    <ColumnListItem>
-
-                                        <cells>
-
-                                            <Text
-                                                text="{local>saleNumber}"/>
-
-                                            <Text
-                                                text="{local>customer/customerName}"/>
-
-                                            <Text
-                                                text="{local>product/productName}"/>
-
-                                            <ObjectNumber
-                                                number="{local>quantity}"/>
-
-                                            <ObjectNumber
-                                                number="{local>unitPrice}"
-                                                unit="INR"/>
-
-                                            <ObjectNumber
-                                                number="{local>totalAmount}"
-                                                unit="INR"/>
-
-                                            <Text
-                                                text="{local>saleDate}"/>
-
-                                            <ObjectStatus
-                                                text="{local>status}"
-                                                state="None"/>
-
-                                        </cells>
-
-                                    </ColumnListItem>
-
-                                </items>
-
-                            </Table>
-
-                        </VBox>
-
-                    </IconTabFilter>
-
-
-                    <!-- ================================================= -->
+                    <!-- ========================= --> 
+ 
+                    <IconTabFilter 
+                        id="salesTab" 
+                        key="sales" 
+                        text="Sales" 
+                        icon="sap-icon://sales-order"> 
+ 
+                        <VBox class="sapUiSmallMargin"> 
+ 
+                            <Toolbar> 
+                                <Title 
+                                    text="Sales" 
+                                    level="H2"/> 
+ 
+                                <ToolbarSpacer/> 
+ 
+                                <!-- Disabled until sale is selected -->
+                                <Button 
+                                    id="newSaleButton"
+                                    text="New Sale" 
+                                    icon="sap-icon://add" 
+                                    type="Emphasized" 
+                                    enabled="false"
+                                    press=".onNewSale"/> 
+ 
+                                <Button 
+                                    id="completeSaleButton"
+                                    text="Complete" 
+                                    icon="sap-icon://accept" 
+                                    type="Accept" 
+                                    enabled="false"
+                                    press=".onCompleteSale" 
+                                    class="sapUiTinyMarginBegin"/> 
+ 
+                                <Button 
+                                    id="cancelSaleButton"
+                                    text="Cancel" 
+                                    icon="sap-icon://decline" 
+                                    type="Reject" 
+                                    enabled="false"
+                                    press=".onCancelSale" 
+                                    class="sapUiTinyMarginBegin"/> 
+ 
+                                <Button 
+                                    id="refreshSalesButton"
+                                    text="Refresh" 
+                                    icon="sap-icon://refresh" 
+                                    enabled="false"
+                                    press=".onRefresh" 
+                                    class="sapUiTinyMarginBegin"/> 
+                            </Toolbar> 
+ 
+                            <Table 
+                                id="salesTable" 
+                                mode="SingleSelectLeft" 
+                                growing="true" 
+                                growingThreshold="20" 
+                                noDataText="No sales available" 
+                                items="{local>/sales}" 
+                                selectionChange=".onSaleSelectionChange"> 
+ 
+                                <columns> 
+                                    <Column> 
+                                        <Text text="Sale Number"/> 
+                                    </Column> 
+ 
+                                    <Column> 
+                                        <Text text="Customer"/> 
+                                    </Column> 
+ 
+                                    <Column> 
+                                        <Text text="Product"/> 
+                                    </Column> 
+ 
+                                    <Column hAlign="End"> 
+                                        <Text text="Quantity"/> 
+                                    </Column> 
+ 
+                                    <Column hAlign="End"> 
+                                        <Text text="Unit Price"/> 
+                                    </Column> 
+ 
+                                    <Column hAlign="End"> 
+                                        <Text text="Total Amount"/> 
+                                    </Column> 
+ 
+                                    <Column> 
+                                        <Text text="Sale Date"/> 
+                                    </Column> 
+ 
+                                    <Column> 
+                                        <Text text="Status"/> 
+                                    </Column> 
+                                </columns> 
+ 
+                                <items> 
+                                    <ColumnListItem> 
+                                        <cells> 
+ 
+                                            <Text 
+                                                text="{local>saleNumber}"/> 
+ 
+                                            <Text 
+                                                text="{local>customer/customerName}"/> 
+ 
+                                            <Text 
+                                                text="{local>product/productName}"/> 
+ 
+                                            <ObjectNumber 
+                                                number="{local>quantity}"/> 
+ 
+                                            <ObjectNumber 
+                                                number="{local>unitPrice}" 
+                                                unit="INR"/> 
+ 
+                                            <ObjectNumber 
+                                                number="{local>totalAmount}" 
+                                                unit="INR"/> 
+ 
+                                            <Text 
+                                                text="{local>saleDate}"/> 
+ 
+                                            <ObjectStatus 
+                                                text="{local>status}" 
+                                                state="None"/> 
+ 
+                                        </cells> 
+                                    </ColumnListItem> 
+                                </items> 
+ 
+                            </Table> 
+ 
+                        </VBox> 
+                    </IconTabFilter> 
+ 
+ 
+                    <!-- ========================= -->
                     <!-- INVENTORY -->
-                    <!-- ================================================= -->
-
-                    <IconTabFilter
-                        id="inventoryTab"
-                        key="inventory"
-                        text="Inventory"
-                        icon="sap-icon://inventory">
-
-                        <VBox class="sapUiSmallMargin">
-
-                            <Toolbar>
-
-                                <Title
-                                    text="Stock Overview"
-                                    level="H2"/>
-
-                                <ToolbarSpacer/>
-
-                                <Button
-                                    text="Refresh"
-                                    icon="sap-icon://refresh"
-                                    type="Transparent"
-                                    press=".onRefreshInventory"/>
-
-                            </Toolbar>
-
-                            <Table
-                                id="inventoryTable"
-                                width="100%"
-                                growing="true"
-                                growingThreshold="15"
-                                noDataText="No inventory records available"
-                                items="{
-                                    path: 'inventory>/Inventory',
-                                    parameters: {
-                                        $expand: 'warehouse'
-                                    }
-                                }">
-
-                                <columns>
-
-                                    <Column>
-                                        <Text text="Product Name"/>
-                                    </Column>
-
-                                    <Column>
-                                        <Text text="Warehouse"/>
-                                    </Column>
-
-                                    <Column hAlign="Center">
-                                        <Text text="Stock Level"/>
-                                    </Column>
-
-                                    <Column hAlign="End">
-                                        <Text text="Stock Qty"/>
-                                    </Column>
-
-                                    <Column hAlign="End">
-                                        <Text text="Reserved"/>
-                                    </Column>
-
-                                    <Column hAlign="End">
-                                        <Text text="Available"/>
-                                    </Column>
-
-                                    <Column>
-                                        <Text text="Last Updated"/>
-                                    </Column>
-
-                                    <Column hAlign="Center">
-                                        <Text text="Actions"/>
-                                    </Column>
-
-                                </columns>
-
-                                <items>
-
-                                    <ColumnListItem>
-
-                                        <cells>
-
-                                            <Text
-                                                text="{
-                                                    path: 'inventory>product_ID',
-                                                    formatter: '.getProductName'
-                                                }"/>
-
-                                            <ObjectIdentifier
-                                                title="{inventory>warehouse/warehouseName}"
-                                                text="{inventory>warehouse/warehouseCode}"/>
-
-                                            <ProgressIndicator
-                                                percentValue="{= ${inventory>stockQty} > 0 ? ((${inventory>stockQty} - ${inventory>reservedQty}) / ${inventory>stockQty}) * 100 : 0 }"
-                                                displayValue="{= ${inventory>stockQty} > 0 ? Math.round((${inventory>stockQty} - ${inventory>reservedQty}) / ${inventory>stockQty} * 100) + '%' : '0%' }"
-                                                width="8rem"/>
-
-                                            <ObjectNumber
-                                                number="{inventory>stockQty}"/>
-
-                                            <ObjectNumber
-                                                number="{inventory>reservedQty}"
-                                                state="Warning"/>
-
-                                            <ObjectNumber
-                                                number="{= ${inventory>stockQty} - ${inventory>reservedQty} }"
-                                                state="{= (${inventory>stockQty} - ${inventory>reservedQty}) > 0 ? 'Success' : 'Error' }"/>
-
-                                            <Text
-                                                text="{
-                                                    path: 'inventory>lastUpdated',
-                                                    formatter: '.formatter.formatDateTime'
-                                                }"/>
-
-                                            <MenuButton
-                                                text="Manage Stock"
-                                                type="Emphasized"
-                                                useDefaultActionOnly="false">
-
-                                                <menu>
-
-                                                    <Menu>
-
-                                                        <MenuItem
-                                                            text="Adjust Stock"
-                                                            icon="sap-icon://add"
-                                                            press=".onAdjustStock"/>
-
-                                                        <MenuItem
-                                                            text="Reserve Stock"
-                                                            icon="sap-icon://locked"
-                                                            press=".onReserveStock"/>
-
-                                                        <MenuItem
-                                                            text="Release Stock"
-                                                            icon="sap-icon://unlocked"
-                                                            press=".onReleaseStock"/>
-
-                                                    </Menu>
-
-                                                </menu>
-
-                                            </MenuButton>
-
-                                        </cells>
-
-                                    </ColumnListItem>
-
-                                </items>
-
-                            </Table>
-
-                        </VBox>
-
-                    </IconTabFilter>
-
-                </items>
-
-            </IconTabBar>
-
-        </content>
-
-    </Page>
-
+                    <!-- ========================= --> 
+ 
+                    <IconTabFilter 
+                        id="inventoryTab" 
+                        key="inventory" 
+                        text="Inventory" 
+                        icon="sap-icon://inventory"> 
+ 
+                        <VBox class="sapUiSmallMargin"> 
+ 
+                            <Toolbar> 
+                                <Title 
+                                    text="Stock Overview" 
+                                    level="H2"/> 
+ 
+                                <ToolbarSpacer/> 
+ 
+                                <Button 
+                                    text="Refresh" 
+                                    icon="sap-icon://refresh" 
+                                    type="Transparent" 
+                                    press=".onRefreshInventory"/> 
+                            </Toolbar> 
+ 
+                            <Table 
+                                id="inventoryTable" 
+                                width="100%" 
+                                growing="true" 
+                                growingThreshold="15" 
+                                noDataText="No inventory records available" 
+                                items="{ 
+                                    path: 'inventory>/Inventory', 
+                                    parameters: { 
+                                        $expand: 'warehouse' 
+                                    } 
+                                }"> 
+ 
+                                <columns> 
+ 
+                                    <Column> 
+                                        <Text text="Product Name"/> 
+                                    </Column> 
+ 
+                                    <Column> 
+                                        <Text text="Warehouse"/> 
+                                    </Column> 
+ 
+                                    <Column hAlign="Center"> 
+                                        <Text text="Stock Level"/> 
+                                    </Column> 
+ 
+                                    <Column hAlign="End"> 
+                                        <Text text="Stock Qty"/> 
+                                    </Column> 
+ 
+                                    <Column hAlign="End"> 
+                                        <Text text="Reserved"/> 
+                                    </Column> 
+ 
+                                    <Column hAlign="End"> 
+                                        <Text text="Available"/> 
+                                    </Column> 
+ 
+                                    <Column> 
+                                        <Text text="Last Updated"/> 
+                                    </Column> 
+ 
+                                    <Column hAlign="Center"> 
+                                        <Text text="Actions"/> 
+                                    </Column> 
+ 
+                                </columns> 
+ 
+                                <items> 
+                                    <ColumnListItem> 
+                                        <cells> 
+ 
+                                            <Text 
+                                                text="{ 
+                                                    path: 'inventory>product_ID', 
+                                                    formatter: '.getProductName' 
+                                                }"/> 
+ 
+                                            <ObjectIdentifier 
+                                                title="{inventory>warehouse/warehouseName}" 
+                                                text="{inventory>warehouse/warehouseCode}"/> 
+ 
+                                            <ProgressIndicator 
+                                                percentValue="{= ${inventory>stockQty} > 0 ? ((${inventory>stockQty} - ${inventory>reservedQty}) / ${inventory>stockQty}) * 100 : 0 }" 
+                                                displayValue="{= ${inventory>stockQty} > 0 ? Math.round((${inventory>stockQty} - ${inventory>reservedQty}) / ${inventory>stockQty} * 100) + '%' : '0%' }" 
+                                                width="8rem"/> 
+ 
+                                            <ObjectNumber 
+                                                number="{inventory>stockQty}"/> 
+ 
+                                            <ObjectNumber 
+                                                number="{inventory>reservedQty}" 
+                                                state="Warning"/> 
+ 
+                                            <ObjectNumber 
+                                                number="{= ${inventory>stockQty} - ${inventory>reservedQty} }" 
+                                                state="{= (${inventory>stockQty} - ${inventory>reservedQty}) > 0 ? 'Success' : 'Error' }"/> 
+ 
+                                            <Text 
+                                                text="{ 
+                                                    path: 'inventory>lastUpdated', 
+                                                    formatter: '.formatter.formatDateTime' 
+                                                }"/> 
+ 
+                                            <MenuButton 
+                                                text="Manage Stock" 
+                                                type="Emphasized" 
+                                                useDefaultActionOnly="false"> 
+ 
+                                                <menu> 
+                                                    <Menu> 
+ 
+                                                        <MenuItem 
+                                                            text="Adjust Stock" 
+                                                            icon="sap-icon://add" 
+                                                            press=".onAdjustStock"/> 
+ 
+                                                        <MenuItem 
+                                                            text="Reserve Stock" 
+                                                            icon="sap-icon://locked" 
+                                                            press=".onReserveStock"/> 
+ 
+                                                        <MenuItem 
+                                                            text="Release Stock" 
+                                                            icon="sap-icon://unlocked" 
+                                                            press=".onReleaseStock"/> 
+ 
+                                                    </Menu> 
+                                                </menu> 
+ 
+                                            </MenuButton> 
+ 
+                                        </cells> 
+                                    </ColumnListItem> 
+                                </items> 
+ 
+                            </Table> 
+ 
+                        </VBox> 
+                    </IconTabFilter> 
+ 
+                </items> 
+ 
+            </IconTabBar> 
+        </content> 
+ 
+    </Page> 
+ 
 </mvc:View>

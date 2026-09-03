@@ -1,11 +1,11 @@
 ID,warehouseCode,warehouseName,location,status
-a1b2c3d4-1111-4a2b-8c3d-000000000001,WH001,Chennai Central Warehouse,"Chennai, Tamil Nadu",Active
-a1b2c3d4-1111-4a2b-8c3d-000000000002,WH002,Bengaluru North Warehouse,"Bengaluru, Karnataka",Active
-a1b2c3d4-1111-4a2b-8c3d-000000000003,WH003,Mumbai Port Warehouse,"Mumbai, Maharashtra",Active
-b3c4d5e6-2222-4c3d-9e4f-000000000201,WH004,Hyderabad Distribution Hub,"Hyderabad, Telangana",Active
-b3c4d5e6-2222-4c3d-9e4f-000000000202,WH005,Pune Regional Warehouse,"Pune, Maharashtra",Active
-b3c4d5e6-2222-4c3d-9e4f-000000000203,WH006,Kolkata East Warehouse,"Kolkata, West Bengal",Active
-c4d5e6f7-3333-4d4e-af5a-000000000301,WH007,Delhi NCR Warehouse,"Gurugram, Haryana",Active
-c4d5e6f7-3333-4d4e-af5a-000000000302,WH008,Ahmedabad Warehouse,"Ahmedabad, Gujarat",Inactive
-c4d5e6f7-3333-4d4e-af5a-000000000303,WH009,Kochi Coastal Warehouse,"Kochi, Kerala",Active
-d5e6f7a8-4444-4e5f-bf6a-000000000401,WH010,Lucknow North Warehouse,"Lucknow, Uttar Pradesh",Under Maintenance
+aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa,WH-CHN,Chennai Central Warehouse,Chennai Tamil Nadu,Active
+bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb,WH-BLR,Bangalore Distribution Center,Bangalore Karnataka,Active
+cccccccc-cccc-cccc-cccc-cccccccccccc,WH-HYD,Hyderabad Warehouse,Hyderabad Telangana,Active
+dddddddd-dddd-dddd-dddd-dddddddddddd,WH-VJA,Vijayawada Storage Center,Vijayawada Andhra Pradesh,Active
+eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee,WH-MUM,Mumbai Distribution Hub,Mumbai Maharashtra,Active
+ffffffff-ffff-ffff-ffff-ffffffffffff,WH-PUN,Pune Warehouse,Pune Maharashtra,Active
+12121212-1212-1212-1212-121212121212,WH-KOC,Kochi Warehouse,Kochi Kerala,Active
+23232323-2323-2323-2323-232323232323,WH-CBE,Coimbatore Warehouse,Coimbatore Tamil Nadu,Active
+34343434-3434-3434-3434-343434343434,WH-DEL,Delhi Distribution Center,New Delhi Delhi,Active
+45454545-4545-4545-4545-454545454545,WH-AHM,Ahmedabad Warehouse,Ahmedabad Gujarat,Active
