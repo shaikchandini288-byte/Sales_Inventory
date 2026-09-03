@@ -1,2 +1,236 @@
 /* Enter your custom styles here */
 
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+.sapUiBody,
+.sapMPage {
+    background-color: #f5f6f7;
+}
+
+/* =========================================================
+   HEADER (ToolHeader)
+========================================================= */
+
+.sapTntToolHeader {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #e5e5e5;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+/* =========================================================
+   SIDE NAVIGATION
+========================================================= */
+
+.sapTntSideNavigation {
+    background-color: #ffffff;
+    border-right: 1px solid #e5e5e5;
+}
+
+.sapTntNavLI.sapTntNLISelected > .sapTntNLIItem {
+    background-color: #eaf2ff !important;
+    border-left: 3px solid #0a6ed1;
+    border-radius: 0;
+    font-weight: 600;
+}
+
+.sapTntNLIItem:hover {
+    background-color: #f5f8ff;
+}
+
+/* =========================================================
+   DASHBOARD PAGE TITLE
+========================================================= */
+
+.dashboardPageTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1d2d3e;
+}
+
+.dashboardPageSubtitle {
+    color: #6a6d70;
+    font-size: 0.95rem;
+}
+
+/* =========================================================
+   KPI CARDS — CSS GRID (fixes uneven wrapping)
+========================================================= */
+
+.dashboardKpiGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    width: 100%;
+}
+
+@media (max-width: 1100px) {
+    .dashboardKpiGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .dashboardKpiGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.dashboardCard {
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    width: 100%;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.dashboardCard:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.10);
+    transform: translateY(-2px);
+}
+
+.dashboardCardBar {
+    height: 5px;
+    width: 100%;
+}
+
+.barBlue   { background: linear-gradient(90deg, #4C6FFF, #7B93FF); }
+.barOrange { background: linear-gradient(90deg, #FF9800, #FFB74D); }
+.barGreen  { background: linear-gradient(90deg, #2E7D32, #66BB6A); }
+.barRed    { background: linear-gradient(90deg, #D32F2F, #EF5350); }
+
+.dashboardCardTitle {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #1d2d3e;
+}
+
+.dashboardCardSubtitle {
+    color: #8b8f94;
+    font-size: 0.75rem;
+    margin-top: 2px;
+}
+
+.dashboardCardNumber {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #1d2d3e;
+    line-height: 1.1;
+    padding-top: 4px;
+}
+
+.dashboardCardIcon {
+    font-size: 1.35rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    line-height: 2.5rem;
+    text-align: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.iconBlue   { background: #E8ECFF; color: #4C6FFF; }
+.iconOrange { background: #FFF3E0; color: #FF9800; }
+.iconGreen  { background: #E8F5E9; color: #2E7D32; }
+.iconRed    { background: #FFEBEE; color: #D32F2F; }
+
+.trendUp {
+    color: #2E7D32;
+    font-size: 0.85rem;
+}
+
+.trendDown {
+    color: #D32F2F;
+    font-size: 0.85rem;
+}
+
+.trendUpText {
+    color: #2E7D32;
+    font-weight: 600;
+    font-size: 0.78rem;
+}
+
+.trendDownText {
+    color: #D32F2F;
+    font-weight: 600;
+    font-size: 0.78rem;
+}
+
+/* =========================================================
+   RECENT SALES / PROJECT OVERVIEW PANELS
+========================================================= */
+
+.sapMPanel {
+    border-radius: 10px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+    border: none !important;
+    overflow: hidden;
+}
+
+.sapMPanel .sapMPanelHdr,
+.sapMPanel .sapMTB {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #eef0f2 !important;
+    padding: 0.75rem 1rem;
+}
+
+.sapMPanel .sapMTitle {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1d2d3e;
+}
+
+/* Table header row (SALE NUMBER / CUSTOMER / etc.) */
+.sapMListTblHeader {
+    background-color: #fafbfc !important;
+}
+
+.sapMListTblHeader .sapMLabel,
+.sapMListTblHeader .sapMText {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: #8b8f94;
+    text-transform: uppercase;
+}
+
+.sapMListTbl .sapMListTblRow:hover {
+    background-color: #fafbfc;
+}
+
+/* =========================================================
+   PROJECT OVERVIEW CHART GRID
+========================================================= */
+
+.dashboardOverviewGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    width: 100%;
+}
+
+@media (max-width: 900px) {
+    .dashboardOverviewGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.overviewChartBox {
+    background: #fafbfc;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #eef0f2;
+}
+
+/* =========================================================
+   RESPONSIVE (legacy rules kept in case dashboardCard is
+   reused outside the grid elsewhere)
+========================================================= */
+
+@media (max-width: 1024px) {
+    .dashboardCard {
+        width: 100%;
+    }
+}
