@@ -1,5 +1,3 @@
-/* Enter your custom styles here */
-
 /* =========================================================
    GLOBAL
 ========================================================= */
@@ -9,15 +7,17 @@
     background-color: #f5f6f7;
 }
 
+
 /* =========================================================
-   HEADER (ToolHeader)
+   HEADER
 ========================================================= */
 
 .sapTntToolHeader {
     background-color: #ffffff !important;
     border-bottom: 1px solid #e5e5e5;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
+
 
 /* =========================================================
    SIDE NAVIGATION
@@ -39,8 +39,9 @@
     background-color: #f5f8ff;
 }
 
+
 /* =========================================================
-   DASHBOARD PAGE TITLE
+   DASHBOARD TITLE
 ========================================================= */
 
 .dashboardPageTitle {
@@ -54,87 +55,208 @@
     font-size: 0.95rem;
 }
 
+
 /* =========================================================
-   KPI CARDS — CSS GRID (fixes uneven wrapping)
+   DASHBOARD KPI GRID
+   IMPORTANT:
+   FLEXBOX IS USED HERE.
 ========================================================= */
 
 .dashboardKpiGrid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
+    display: flex !important;
+
+    flex-direction: row;
+
+    flex-wrap: wrap;
+
+    justify-content: space-between;
+
+    align-items: stretch;
+
     width: 100%;
+
+    gap: 1rem;
+
+    box-sizing: border-box;
 }
 
-@media (max-width: 1100px) {
-    .dashboardKpiGrid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
 
-@media (max-width: 600px) {
-    .dashboardKpiGrid {
-        grid-template-columns: 1fr;
-    }
-}
+/* =========================================================
+   DASHBOARD CARD
+========================================================= */
 
 .dashboardCard {
     background: #ffffff;
+
     border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.06);
+
     overflow: hidden;
-    width: 100%;
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    width: 23% !important;
+
+    min-width: 0;
+
+    box-sizing: border-box;
+
+    flex: 0 0 23%;
+
+    transition:
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
 }
 
+
 .dashboardCard:hover {
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.10);
-    transform: translateY(-2px);
+    box-shadow:
+        0 6px 16px rgba(0, 0, 0, 0.10);
+
+    transform:
+        translateY(-2px);
 }
+
+
+/* =========================================================
+   CARD TOP BARS
+========================================================= */
 
 .dashboardCardBar {
     height: 5px;
     width: 100%;
 }
 
-.barBlue   { background: linear-gradient(90deg, #4C6FFF, #7B93FF); }
-.barOrange { background: linear-gradient(90deg, #FF9800, #FFB74D); }
-.barGreen  { background: linear-gradient(90deg, #2E7D32, #66BB6A); }
-.barRed    { background: linear-gradient(90deg, #D32F2F, #EF5350); }
+.barBlue {
+    background:
+        linear-gradient(
+            90deg,
+            #4C6FFF,
+            #7B93FF
+        );
+}
+
+.barOrange {
+    background:
+        linear-gradient(
+            90deg,
+            #FF9800,
+            #FFB74D
+        );
+}
+
+.barGreen {
+    background:
+        linear-gradient(
+            90deg,
+            #2E7D32,
+            #66BB6A
+        );
+}
+
+.barRed {
+    background:
+        linear-gradient(
+            90deg,
+            #D32F2F,
+            #EF5350
+        );
+}
+
+
+/* =========================================================
+   CARD TEXT
+========================================================= */
 
 .dashboardCardTitle {
     font-weight: 700;
+
     font-size: 1rem;
+
     color: #1d2d3e;
+
+    white-space: normal;
 }
 
 .dashboardCardSubtitle {
     color: #8b8f94;
+
     font-size: 0.75rem;
+
     margin-top: 2px;
+
+    white-space: normal;
 }
+
+
+/* =========================================================
+   CARD NUMBER
+========================================================= */
 
 .dashboardCardNumber {
     font-size: 2.25rem;
+
     font-weight: 700;
+
     color: #1d2d3e;
+
     line-height: 1.1;
+
     padding-top: 4px;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
 }
+
+
+/* =========================================================
+   CARD ICON
+========================================================= */
 
 .dashboardCardIcon {
     font-size: 1.35rem;
+
     width: 2.5rem;
+
     height: 2.5rem;
+
     line-height: 2.5rem;
+
     text-align: center;
+
     border-radius: 50%;
+
     flex-shrink: 0;
 }
 
-.iconBlue   { background: #E8ECFF; color: #4C6FFF; }
-.iconOrange { background: #FFF3E0; color: #FF9800; }
-.iconGreen  { background: #E8F5E9; color: #2E7D32; }
-.iconRed    { background: #FFEBEE; color: #D32F2F; }
+
+.iconBlue {
+    background: #E8ECFF;
+    color: #4C6FFF;
+}
+
+.iconOrange {
+    background: #FFF3E0;
+    color: #FF9800;
+}
+
+.iconGreen {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.iconRed {
+    background: #FFEBEE;
+    color: #D32F2F;
+}
+
+
+/* =========================================================
+   TREND
+========================================================= */
 
 .trendUp {
     color: #2E7D32;
@@ -148,41 +270,60 @@
 
 .trendUpText {
     color: #2E7D32;
+
     font-weight: 600;
+
     font-size: 0.78rem;
 }
 
 .trendDownText {
     color: #D32F2F;
+
     font-weight: 600;
+
     font-size: 0.78rem;
 }
 
+
 /* =========================================================
-   RECENT SALES / PROJECT OVERVIEW PANELS
+   PANELS
 ========================================================= */
 
 .sapMPanel {
     border-radius: 10px !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.06) !important;
+
     border: none !important;
+
     overflow: hidden;
 }
 
 .sapMPanel .sapMPanelHdr,
 .sapMPanel .sapMTB {
     background-color: #ffffff !important;
-    border-bottom: 1px solid #eef0f2 !important;
-    padding: 0.75rem 1rem;
+
+    border-bottom:
+        1px solid #eef0f2 !important;
+
+    padding:
+        0.75rem 1rem;
 }
 
 .sapMPanel .sapMTitle {
     font-size: 1.1rem;
+
     font-weight: 700;
+
     color: #1d2d3e;
 }
 
-/* Table header row (SALE NUMBER / CUSTOMER / etc.) */
+
+/* =========================================================
+   TABLE HEADER
+========================================================= */
+
 .sapMListTblHeader {
     background-color: #fafbfc !important;
 }
@@ -190,9 +331,13 @@
 .sapMListTblHeader .sapMLabel,
 .sapMListTblHeader .sapMText {
     font-size: 0.72rem;
+
     font-weight: 700;
+
     letter-spacing: 0.03em;
+
     color: #8b8f94;
+
     text-transform: uppercase;
 }
 
@@ -200,37 +345,258 @@
     background-color: #fafbfc;
 }
 
+
 /* =========================================================
-   PROJECT OVERVIEW CHART GRID
+   DASHBOARD OVERVIEW
 ========================================================= */
 
 .dashboardOverviewGrid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
+    display: flex;
+
+    flex-direction: row;
+
+    flex-wrap: wrap;
+
+    justify-content: space-between;
+
+    align-items: stretch;
+
     width: 100%;
+
+    box-sizing: border-box;
 }
 
-@media (max-width: 900px) {
-    .dashboardOverviewGrid {
-        grid-template-columns: 1fr;
-    }
-}
 
 .overviewChartBox {
     background: #fafbfc;
+
     border-radius: 8px;
+
     padding: 1rem;
+
     border: 1px solid #eef0f2;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   INVENTORY FILTER PANEL
+========================================================= */
+
+#inventoryFilterPanel {
+    background-color: #ffffff;
+}
+
+#inventoryFilterPanel .sapMPanelContent {
+    background-color: #ffffff;
+}
+
+
+/* =========================================================
+   INVENTORY TABLE
+========================================================= */
+
+#inventoryTable {
+    background-color: #ffffff;
+}
+
+#inventoryTable .sapMListTblCell {
+    vertical-align: middle;
+}
+
+
+/* =========================================================
+   INVENTORY PRODUCT NAME
+========================================================= */
+
+#inventoryTable .sapMListTblCell:first-child .sapMText {
+    font-weight: 600;
+
+    color: #1d2d3e;
+}
+
+
+/* =========================================================
+   INVENTORY WAREHOUSE
+========================================================= */
+
+#inventoryTable .sapMObjectIdentifierTitle {
+    font-weight: 600;
+
+    color: #1d2d3e;
+}
+
+#inventoryTable .sapMObjectIdentifierText {
+    color: #6a6d70;
+
+    font-size: 0.8rem;
+}
+
+
+/* =========================================================
+   ANALYTICS TILES
+========================================================= */
+
+.analyticsTileGrid {
+    display: flex;
+
+    flex-direction: row;
+
+    flex-wrap: wrap;
+
+    justify-content: space-between;
+
+    gap: 1rem;
+}
+
+
+/* =========================================================
+   RESPONSIVE DASHBOARD
+========================================================= */
+
+@media (max-width: 1100px) {
+
+    .dashboardCard {
+
+        flex: 0 0 calc(50% - 0.5rem);
+
+        width:
+            calc(50% - 0.5rem) !important;
+
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .dashboardKpiGrid {
+
+        flex-direction: column;
+
+    }
+
+
+    .dashboardCard {
+
+        flex: 0 0 100%;
+
+        width: 100% !important;
+
+    }
+
+
+    .dashboardOverviewGrid {
+
+        flex-direction: column;
+
+    }
+
 }
 
 /* =========================================================
-   RESPONSIVE (legacy rules kept in case dashboardCard is
-   reused outside the grid elsewhere)
+   INVENTORY FILTER SECTION
+========================================================= */
+
+.inventoryFilterPanel {
+    margin-top: 1rem;
+    background: #ffffff !important;
+    border-radius: 10px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+    border: none !important;
+}
+
+/* Entire filter section in one horizontal row */
+.inventoryFilterRow {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-end !important;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.75rem 1rem 1rem 1rem;
+    box-sizing: border-box;
+}
+
+/* Individual filter fields */
+.inventoryFilterField {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.3rem;
+}
+
+/* Product Name */
+.productFilterField {
+    width: 30%;
+    min-width: 220px;
+}
+
+/* Warehouse */
+.warehouseFilterField {
+    width: 27%;
+    min-width: 200px;
+}
+
+/* Stock Status */
+.stockFilterField {
+    width: 27%;
+    min-width: 200px;
+}
+
+/* Labels */
+.inventoryFilterField .sapMLabel {
+    color: #5f6b76;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Input / Select */
+.inventoryFilterField .sapMInputBase,
+.inventoryFilterField .sapMSlt {
+    width: 100% !important;
+}
+
+/* Filter button */
+.inventoryFilterButton {
+    flex-shrink: 0;
+    margin-bottom: 0;
+}
+
+/* Clear button */
+.inventoryClearButton {
+    flex-shrink: 0;
+    margin-bottom: 0;
+}
+
+/* =========================================================
+   INVENTORY TABLE
+========================================================= */
+
+.inventoryTable {
+    margin-top: 1rem;
+}
+
+.inventoryTable .sapMListTblHeader {
+    background-color: #fafbfc !important;
+}
+
+.inventoryTable .sapMListTblHeaderCell {
+    border-bottom: 1px solid #d9d9d9;
+}
+
+.inventoryTable .sapMListTblCell {
+    vertical-align: middle;
+}
+
+
+/* =========================================================
+   LEGACY SAFETY
 ========================================================= */
 
 @media (max-width: 1024px) {
+
     .dashboardCard {
-        width: 100%;
+        box-sizing: border-box;
     }
+
 }
