@@ -8,4 +8,4 @@ ID,productCode,productName,description,category_ID,unitPrice,stockQty,status
 77777777-7777-7777-7777-777777777777,PROD007,JBL Speaker,Portable Bluetooth speaker with quality sound,66666666-6666-6666-6666-666666666666,6500.00,60,Available
 88888888-8888-8888-8888-888888888888,PROD008,Samsung SSD 1TB,High speed solid state drive for data storage,88888888-8888-8888-8888-888888888888,8500.00,135,Available
 99999999-9999-9999-9999-999999999999,PROD009,USB-C Charger,Fast charging USB-C power adapter,99999999-9999-9999-9999-999999999999,2200.00,95,Available
-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa,PROD010,CP Plus CCTV Camera,HD security camera for indoor and outdoor monitoring,aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa,5500.00,250,Available
+aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa,PROD010,CP Plus CCTV Camera,HD security camera for indoor and outdoor monitoring,aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa,5500.00,250,Available    

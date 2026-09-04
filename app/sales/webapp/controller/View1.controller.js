@@ -10,7 +10,9 @@ sap.ui.define([
     "sap/m/Input",
     "sap/m/Label",
     "sap/m/VBox",
+    "sap/m/HBox",
     "sap/m/Select",
+    "sap/m/Text",
     "sap/ui/core/Item",
     "../model/formatter"
 ], function (
@@ -25,7 +27,9 @@ sap.ui.define([
     Input,
     Label,
     VBox,
+    HBox,
     Select,
+    Text,
     Item,
     formatter
 ) {
@@ -81,27 +85,15 @@ sap.ui.define([
                 this._loadProducts(),
                 this._loadSales(),
                 this._loadCustomers()
-            ])
-                .then(
-                    async function () {
+            ]).then(() => {
+                this._computeAnalytics();
+            });
 
-                        this._computeAnalytics();
-
-                        await this._loadInventory();
-
-                    }.bind(this)
-                )
-                .catch(
-                    function (error) {
-
-                        console.error(
-                            "Initial loading error:",
-                            error
-                        );
-
-                    }
+            if (!this.getView().getModel("inventory")) {
+                console.error(
+                    "Inventory OData model is not available. Check manifest.json."
                 );
-
+            }
         },
 
 
@@ -111,59 +103,40 @@ sap.ui.define([
 
         onSideNavToggle: function () {
 
-            var oToolPage =
-                this.byId("toolPage");
-
-            if (!oToolPage) {
-                return;
-            }
+            const oToolPage = this.byId("toolPage");
 
             oToolPage.setSideExpanded(
                 !oToolPage.getSideExpanded()
             );
-
         },
 
 
         onSideNavItemSelect: function (oEvent) {
 
-            var oItem =
-                oEvent.getParameter("item");
-
-            if (!oItem) {
-                return;
-            }
-
-            var sKey =
-                oItem.getKey();
+            const sKey =
+                oEvent.getParameter("item").getKey();
 
             if (sKey) {
-
                 this.oLocalModel.setProperty(
                     "/currentPage",
                     sKey
                 );
-
             }
-
         },
 
 
         onTabSelect: function (oEvent) {
 
-            var sKey =
+            const sKey =
                 oEvent.getParameter("selectedKey") ||
                 oEvent.getParameter("key");
 
             if (sKey) {
-
                 this.oLocalModel.setProperty(
                     "/currentPage",
                     sKey
                 );
-
             }
-
         },
 
 
@@ -173,17 +146,6 @@ sap.ui.define([
                 "/currentPage",
                 "sales"
             );
-
-        },
-
-
-        onViewAllAnalytics: function () {
-
-            this.oLocalModel.setProperty(
-                "/currentPage",
-                "analytics"
-            );
-
         },
 
 
@@ -195,10 +157,9 @@ sap.ui.define([
 
             try {
 
-                var response =
-                    await fetch(
-                        "/odata/v4/sales-inventory/Products?$expand=category"
-                    );
+                const response = await fetch(
+                    "/odata/v4/sales-inventory/Products?$expand=category"
+                );
 
                 if (!response.ok) {
 
@@ -211,31 +172,23 @@ sap.ui.define([
 
                 }
 
-                var data =
+                const data =
                     await response.json();
-
-                var aProducts =
-                    data.value || [];
 
                 this.oLocalModel.setProperty(
                     "/products",
-                    aProducts
+                    data.value || []
                 );
 
-                var oInventoryTable =
+                const oInventoryTable =
                     this.byId("inventoryTable");
 
-                if (oInventoryTable) {
+                const oInventoryBinding =
+                    oInventoryTable &&
+                    oInventoryTable.getBinding("items");
 
-                    var oBinding =
-                        oInventoryTable.getBinding(
-                            "items"
-                        );
-
-                    if (oBinding) {
-                        oBinding.refresh();
-                    }
-
+                if (oInventoryBinding) {
+                    oInventoryBinding.refresh();
                 }
 
             } catch (error) {
@@ -249,7 +202,6 @@ sap.ui.define([
                     "Unable to load Products.\n\n" +
                     this._getErrorMessage(error)
                 );
-
             }
 
         },
@@ -260,13 +212,10 @@ sap.ui.define([
         // =========================================================
 
         _loadSales: async function () {
-
             try {
-
-                var response =
-                    await fetch(
-                        "/odata/v4/sales-inventory/Sales?$expand=customer,product($expand=category)&$orderby=saleDate desc"
-                    );
+                const response = await fetch(
+                    "/odata/v4/sales-inventory/Sales?$expand=customer,product($expand=category)&$orderby=saleDate asc"
+                );
 
                 if (!response.ok) {
 
@@ -279,8 +228,7 @@ sap.ui.define([
 
                 }
 
-                var data =
-                    await response.json();
+                const data = await response.json();
 
                 this.oLocalModel.setProperty(
                     "/sales",
@@ -288,7 +236,6 @@ sap.ui.define([
                 );
 
             } catch (error) {
-
                 console.error(
                     "Sales loading error:",
                     error
@@ -298,11 +245,9 @@ sap.ui.define([
                     "Unable to load Sales.\n\n" +
                     this._getErrorMessage(error)
                 );
-
             }
 
         },
-
 
         // =========================================================
         // LOAD CUSTOMERS
@@ -312,10 +257,9 @@ sap.ui.define([
 
             try {
 
-                var response =
-                    await fetch(
-                        "/odata/v4/sales-inventory/Customers"
-                    );
+                const response = await fetch(
+                    "/odata/v4/sales-inventory/Customers"
+                );
 
                 if (!response.ok) {
 
@@ -328,7 +272,7 @@ sap.ui.define([
 
                 }
 
-                var data =
+                const data =
                     await response.json();
 
                 this.oLocalModel.setProperty(
@@ -347,7 +291,6 @@ sap.ui.define([
                     "Unable to load Customers.\n\n" +
                     this._getErrorMessage(error)
                 );
-
             }
 
         },
@@ -360,10 +303,7 @@ sap.ui.define([
         onProductSelectionChange: function (oEvent) {
 
             this.oSelectedProduct =
-                oEvent.getParameter(
-                    "listItem"
-                );
-
+                oEvent.getParameter("listItem");
         },
 
 
@@ -374,109 +314,118 @@ sap.ui.define([
         onSaleSelectionChange: function (oEvent) {
 
             this.oSelectedSale =
-                oEvent.getParameter(
-                    "listItem"
-                );
+                oEvent.getParameter("listItem");
 
-            var bSelected =
+            const bSelected =
                 !!this.oSelectedSale;
 
-            var oComplete =
-                this.byId(
-                    "completeSaleButton"
-                );
+            this.byId("completeSaleButton")
+                .setEnabled(bSelected);
 
-            var oCancel =
-                this.byId(
-                    "cancelSaleButton"
-                );
-
-            if (oComplete) {
-                oComplete.setEnabled(
-                    bSelected
-                );
-            }
-
-            if (oCancel) {
-                oCancel.setEnabled(
-                    bSelected
-                );
-            }
-
+            this.byId("cancelSaleButton")
+                .setEnabled(bSelected);
         },
 
 
         // =========================================================
-        // SALES FILTER
+        // SALES SEARCH
         // =========================================================
 
-        onApplySaleFilter: function () {
+        onSalesSearch: function (oEvent) {
 
-            var oTable =
+            const sQuery =
+                (
+                    oEvent.getParameter("newValue") ||
+                    oEvent.getParameter("query") ||
+                    ""
+                ).trim();
+
+            this._applySalesFilters(sQuery);
+        },
+
+
+        // =========================================================
+        // SALES STATUS FILTER
+        // =========================================================
+
+        onSalesStatusFilterChange: function () {
+
+            const oSearchField =
+                this.byId("salesSearchField");
+
+            const sQuery =
+                oSearchField
+                    ? (
+                        oSearchField.getValue() ||
+                        ""
+                    ).trim()
+                    : "";
+
+            this._applySalesFilters(sQuery);
+        },
+
+
+        _applySalesFilters: function (sQuery) {
+
+            const oTable =
                 this.byId("salesTable");
 
             if (!oTable) {
                 return;
             }
 
-            var oBinding =
+            const oBinding =
                 oTable.getBinding("items");
 
             if (!oBinding) {
                 return;
             }
 
-            var oStatus =
-                this.byId(
-                    "saleStatusFilter"
-                );
+            const oSelect =
+                this.byId("salesStatusFilter");
 
-            var oStart =
-                this.byId(
-                    "startDateFilter"
-                );
-
-            var oEnd =
-                this.byId(
-                    "endDateFilter"
-                );
-
-            var sStatus =
-                oStatus
-                    ? oStatus.getSelectedKey()
-                    : "ALL";
-
-            var sStart =
-                oStart
-                    ? oStart.getValue()
+            const sStatus =
+                oSelect
+                    ? oSelect.getSelectedKey()
                     : "";
 
-            var sEnd =
-                oEnd
-                    ? oEnd.getValue()
-                    : "";
+            const aFilters = [];
 
-            if (
-                sStart &&
-                sEnd &&
-                sStart > sEnd
-            ) {
 
-                MessageBox.warning(
-                    "Start Date cannot be greater than End Date."
+            // Search filter
+            if (sQuery) {
+
+                aFilters.push(
+                    new Filter({
+                        filters: [
+
+                            new Filter(
+                                "saleNumber",
+                                FilterOperator.Contains,
+                                sQuery
+                            ),
+
+                            new Filter(
+                                "customer/customerName",
+                                FilterOperator.Contains,
+                                sQuery
+                            ),
+
+                            new Filter(
+                                "product/productName",
+                                FilterOperator.Contains,
+                                sQuery
+                            )
+
+                        ],
+                        and: false
+                    })
                 );
-
-                return;
-
             }
 
-            var aFilters = [];
 
-
-            if (
-                sStatus &&
-                sStatus !== "ALL"
-            ) {
+            // Status filter
+            if (sStatus) {
 
                 aFilters.push(
                     new Filter(
@@ -485,173 +434,28 @@ sap.ui.define([
                         sStatus
                     )
                 );
-
             }
 
 
-            if (sStart || sEnd) {
-
-                aFilters.push(
-                    new Filter({
-
-                        path: "saleDate",
-
-                        test: function (sDate) {
-
-                            if (!sDate) {
-                                return false;
-                            }
-
-                            var oDate =
-                                new Date(sDate);
-
-                            if (
-                                isNaN(
-                                    oDate.getTime()
-                                )
-                            ) {
-                                return false;
-                            }
-
-                            var sDateOnly =
-                                oDate
-                                    .toISOString()
-                                    .substring(
-                                        0,
-                                        10
-                                    );
-
-                            if (
-                                sStart &&
-                                sDateOnly < sStart
-                            ) {
-                                return false;
-                            }
-
-                            if (
-                                sEnd &&
-                                sDateOnly > sEnd
-                            ) {
-                                return false;
-                            }
-
-                            return true;
-
-                        }
-
-                    })
-                );
-
-            }
-
-
-            oBinding.filter(
-                aFilters,
-                "Application"
-            );
-
-            this._clearSaleSelection();
-
-            var iCount =
-                oBinding.getLength();
-
-            if (iCount === 0) {
-
-                MessageToast.show(
-                    "No sales found for the selected filters."
-                );
-
-            } else {
-
-                MessageToast.show(
-                    iCount +
-                    " sale(s) found."
-                );
-
-            }
-
-        },
-
-
-        // =========================================================
-        // CLEAR SALES FILTER
-        // =========================================================
-
-        onClearSaleFilter: function () {
-
-            var oTable =
-                this.byId("salesTable");
-
-            if (oTable) {
-
-                var oBinding =
-                    oTable.getBinding(
-                        "items"
-                    );
-
-                if (oBinding) {
-
-                    oBinding.filter(
-                        [],
-                        "Application"
-                    );
-
-                }
-
-            }
-
-            var oStatus =
-                this.byId(
-                    "saleStatusFilter"
-                );
-
-            var oStart =
-                this.byId(
-                    "startDateFilter"
-                );
-
-            var oEnd =
-                this.byId(
-                    "endDateFilter"
-                );
-
-            if (oStatus) {
-                oStatus.setSelectedKey(
-                    "ALL"
-                );
-            }
-
-            if (oStart) {
-                oStart.setValue("");
-            }
-
-            if (oEnd) {
-                oEnd.setValue("");
-            }
-
-            this._clearSaleSelection();
-
-            MessageToast.show(
-                "Sales filters cleared."
-            );
-
+            oBinding.filter(aFilters);
         },
 
 
         // =========================================================
         // NEW SALE
+        // ONE OR MORE PRODUCTS
         // =========================================================
 
         onNewSale: async function () {
 
             try {
 
-                var aCustomers =
+                let aCustomers =
                     this.oLocalModel.getProperty(
                         "/customers"
                     ) || [];
 
-                var aProducts =
+                let aProducts =
                     this.oLocalModel.getProperty(
                         "/products"
                     ) || [];
@@ -665,7 +469,6 @@ sap.ui.define([
                         this.oLocalModel.getProperty(
                             "/customers"
                         ) || [];
-
                 }
 
 
@@ -677,7 +480,6 @@ sap.ui.define([
                         this.oLocalModel.getProperty(
                             "/products"
                         ) || [];
-
                 }
 
 
@@ -703,9 +505,15 @@ sap.ui.define([
                 }
 
 
-                var oCustomerSelect =
+
+                // =================================================
+                // CUSTOMER SELECT
+                // =================================================
+
+                const oCustomerSelect =
                     new Select({
-                        width: "100%"
+                        width: "100%",
+                        forceSelection: true
                     });
 
 
@@ -714,117 +522,353 @@ sap.ui.define([
 
                         oCustomerSelect.addItem(
                             new Item({
-                                key:
-                                    oCustomer.ID,
-
+                                key: oCustomer.ID,
                                 text:
                                     oCustomer.customerName
                             })
                         );
-
                     }
                 );
 
 
-                var oProductSelect =
-                    new Select({
+                // =================================================
+                // PRODUCT CONTAINER
+                // =================================================
+
+                const oProductContainer =
+                    new VBox({
                         width: "100%"
                     });
 
 
-                aProducts.forEach(
-                    function (oProduct) {
+                // =================================================
+                // CREATE PRODUCT ROW
+                // =================================================
 
-                        var iStock =
-                            Number(
-                                oProduct.stockQty || 0
-                            );
+                const fnCreateProductRow =
+                    function () {
 
-                        oProductSelect.addItem(
-                            new Item({
+                        // -------------------------------
+                        // PRODUCT SELECT
+                        // -------------------------------
 
-                                key:
-                                    oProduct.ID,
+                        const oProductSelect =
+                            new Select({
 
-                                text:
-                                    oProduct.productName +
-                                    " - ₹" +
+                                width: "100%",
+
+                                forceSelection: true
+                            });
+
+
+                        aProducts.forEach(
+                            function (oProduct) {
+
+                                const iStock =
                                     Number(
-                                        oProduct.unitPrice || 0
-                                    ).toFixed(2) +
-                                    " - Stock: " +
-                                    iStock
+                                        oProduct.stockQty ||
+                                        0
+                                    );
 
-                            })
+                                oProductSelect.addItem(
+                                    new Item({
+
+                                        key:
+                                            oProduct.ID,
+
+                                        text:
+                                            oProduct.productName +
+                                            " - ₹" +
+                                            Number(
+                                                oProduct.unitPrice ||
+                                                0
+                                            ).toFixed(2) +
+                                            " - Stock: " +
+                                            iStock
+
+                                    })
+                                );
+                            }
                         );
 
-                    }
-                );
+
+                        // -------------------------------
+                        // QUANTITY INPUT
+                        // -------------------------------
+
+                        const oQuantityInput =
+                            new Input({
+
+                                type: "Number",
+
+                                value: "1",
+
+                                width: "7rem",
+
+                                textAlign: "Center",
+
+                                placeholder: "Quantity"
+                            });
 
 
-                var oQuantityInput =
-                    new Input({
-                        type: "Number",
-                        value: "1",
-                        width: "100%",
-                        placeholder:
-                            "Enter quantity"
-                    });
+                        // -------------------------------
+                        // REMOVE BUTTON
+                        // -------------------------------
+
+                        const oRemoveButton =
+                            new Button({
+
+                                icon:
+                                    "sap-icon://delete",
+
+                                type:
+                                    "Transparent",
+
+                                tooltip:
+                                    "Remove product",
+
+                                width:
+                                    "3rem"
+
+                            });
 
 
-                var oDialog =
-                    new Dialog({
+                        // =================================================
+                        // PRODUCT CARD
+                        // =================================================
 
-                        title:
-                            "New Sale",
-
-                        contentWidth:
-                            "30rem",
-
-                        content:
+                        const oProductRow =
                             new VBox({
+
+                                width: "100%",
 
                                 items: [
 
-                                    new Label({
-                                        text:
-                                            "Customer",
-                                        required:
-                                            true
-                                    }),
-
-                                    oCustomerSelect,
-
+                                    // Product label
                                     new Label({
                                         text:
                                             "Product",
                                         required:
                                             true
                                     }).addStyleClass(
-                                        "sapUiSmallMarginTop"
+                                        "sapUiTinyMarginBottom"
                                     ),
 
+                                    // Product select
                                     oProductSelect,
 
-                                    new Label({
-                                        text:
-                                            "Quantity",
-                                        required:
-                                            true
-                                    }).addStyleClass(
-                                        "sapUiSmallMarginTop"
-                                    ),
+                                    // Quantity section
+                                    new HBox({
 
-                                    oQuantityInput
+                                        width:
+                                            "100%",
+
+                                        alignItems:
+                                            "Center",
+
+                                        items: [
+
+                                            new Label({
+
+                                                text:
+                                                    "Quantity",
+
+                                                width:
+                                                    "6rem"
+
+                                            }).addStyleClass(
+                                                "sapUiSmallMarginTop"
+                                            ),
+
+                                            oQuantityInput
+                                                .addStyleClass(
+                                                    "sapUiSmallMarginBegin sapUiSmallMarginTop"
+                                                ),
+
+                                            oRemoveButton
+                                                .addStyleClass(
+                                                    "sapUiSmallMarginBegin sapUiSmallMarginTop"
+                                                )
+
+                                        ]
+
+                                    })
 
                                 ]
 
                             }).addStyleClass(
-                                "sapUiSmallMargin"
+                                "sapUiSmallMarginBottom sapUiSmallPadding"
+                            );
+
+
+                        // =================================================
+                        // BORDER / BACKGROUND STYLE
+                        // =================================================
+
+                        oProductRow.addStyleClass(
+                            "saleProductRow"
+                        );
+
+
+                        // =================================================
+                        // REMOVE PRODUCT
+                        // =================================================
+
+                        oRemoveButton.attachPress(
+                            function () {
+
+                                const aItems =
+                                    oProductContainer
+                                        .getItems();
+
+
+                                if (
+                                    aItems.length <= 1
+                                ) {
+
+                                    MessageToast.show(
+                                        "At least one product is required."
+                                    );
+
+                                    return;
+                                }
+
+
+                                oProductContainer
+                                    .removeItem(
+                                        oProductRow
+                                    );
+
+                                oProductRow.destroy();
+                            }
+                        );
+
+
+                        // Store controls
+                        oProductRow.data(
+                            "productSelect",
+                            oProductSelect
+                        );
+
+                        oProductRow.data(
+                            "quantityInput",
+                            oQuantityInput
+                        );
+
+
+                        oProductContainer.addItem(
+                            oProductRow
+                        );
+
+
+                        return oProductRow;
+                    };
+
+
+                // First product
+                fnCreateProductRow();
+
+
+                // =================================================
+                // ADD PRODUCT BUTTON
+                // =================================================
+
+                const oAddProductButton =
+                    new Button({
+
+                        text:
+                            "Add Product",
+
+                        icon:
+                            "sap-icon://add",
+
+                        type:
+                            "Transparent",
+
+                        press:
+                            function () {
+
+                                fnCreateProductRow();
+                            }
+
+                    }).addStyleClass(
+                        "sapUiSmallMarginTop"
+                    );
+
+
+                // =================================================
+                // DIALOG
+                // =================================================
+
+                const oDialog =
+                    new Dialog({
+
+                        title:
+                            "New Sale",
+
+                        contentWidth:
+                            "42rem",
+
+                        content:
+
+                            new VBox({
+
+                                width:
+                                    "100%",
+
+                                items: [
+
+                                    // Customer
+                                    new Label({
+
+                                        text:
+                                            "Customer",
+
+                                        required:
+                                            true
+
+                                    }).addStyleClass(
+                                        "sapUiSmallMarginBottom"
+                                    ),
+
+
+                                    oCustomerSelect,
+
+
+                                    // Products heading
+                                    new Label({
+
+                                        text:
+                                            "Products",
+
+                                        required:
+                                            true
+
+                                    }).addStyleClass(
+                                        "sapUiMediumMarginTop sapUiSmallMarginBottom"
+                                    ),
+
+
+                                    // Products
+                                    oProductContainer,
+
+
+                                    // Add Product
+                                    oAddProductButton
+
+                                ]
+
+                            }).addStyleClass(
+                                "sapUiMediumMargin"
                             ),
 
 
+                        // =================================================
+                        // CREATE SALE
+                        // =================================================
+
                         beginButton:
+
                             new Button({
 
                                 text:
@@ -836,20 +880,9 @@ sap.ui.define([
                                 press:
                                     async function () {
 
-                                        var sCustomerID =
+                                        const sCustomerID =
                                             oCustomerSelect
                                                 .getSelectedKey();
-
-                                        var sProductID =
-                                            oProductSelect
-                                                .getSelectedKey();
-
-                                        var iQuantity =
-                                            parseInt(
-                                                oQuantityInput
-                                                    .getValue(),
-                                                10
-                                            );
 
 
                                         if (!sCustomerID) {
@@ -859,114 +892,247 @@ sap.ui.define([
                                             );
 
                                             return;
-
                                         }
 
 
-                                        if (!sProductID) {
-
-                                            MessageBox.warning(
-                                                "Please select a product."
-                                            );
-
-                                            return;
-
-                                        }
+                                        const aRows =
+                                            oProductContainer
+                                                .getItems();
 
 
                                         if (
-                                            !Number.isInteger(
-                                                iQuantity
-                                            ) ||
-                                            iQuantity <= 0
+                                            !aRows ||
+                                            aRows.length === 0
                                         ) {
 
                                             MessageBox.warning(
-                                                "Quantity must be greater than zero."
+                                                "Please add at least one product."
                                             );
 
                                             return;
-
                                         }
 
 
-                                        var oProduct =
-                                            aProducts.find(
-                                                function (
-                                                    oItem
-                                                ) {
+                                        const aSaleProducts =
+                                            [];
 
-                                                    return (
-                                                        String(
-                                                            oItem.ID
-                                                        ) ===
-                                                        String(
+                                        const oProductMap =
+                                            {};
+
+
+                                        // =====================================
+                                        // VALIDATE ALL PRODUCT ROWS
+                                        // =====================================
+
+                                        for (
+                                            let i = 0;
+                                            i < aRows.length;
+                                            i++
+                                        ) {
+
+                                            const oRow =
+                                                aRows[i];
+
+
+                                            const oProductSelect =
+                                                oRow.data(
+                                                    "productSelect"
+                                                );
+
+
+                                            const oQuantityInput =
+                                                oRow.data(
+                                                    "quantityInput"
+                                                );
+
+
+                                            const sProductID =
+                                                oProductSelect
+                                                    .getSelectedKey();
+
+
+                                            const iQuantity =
+                                                parseInt(
+                                                    oQuantityInput
+                                                        .getValue(),
+                                                    10
+                                                );
+
+
+                                            if (!sProductID) {
+
+                                                MessageBox.warning(
+                                                    "Please select a product in row " +
+                                                    (i + 1) +
+                                                    "."
+                                                );
+
+                                                return;
+                                            }
+
+
+                                            if (
+                                                !Number.isInteger(
+                                                    iQuantity
+                                                ) ||
+                                                iQuantity <= 0
+                                            ) {
+
+                                                MessageBox.warning(
+                                                    "Quantity must be greater than zero in row " +
+                                                    (i + 1) +
+                                                    "."
+                                                );
+
+                                                return;
+                                            }
+
+
+                                            // Prevent duplicate product
+                                            if (
+                                                Object.prototype
+                                                    .hasOwnProperty
+                                                    .call(
+                                                        oProductMap,
+                                                        sProductID
+                                                    )
+                                            ) {
+
+                                                MessageBox.warning(
+                                                    "The same product cannot be added more than once."
+                                                );
+
+                                                return;
+                                            }
+
+
+                                            const oProduct =
+                                                aProducts.find(
+                                                    function (
+                                                        oItem
+                                                    ) {
+
+                                                        return (
+                                                            oItem.ID ===
                                                             sProductID
-                                                        )
-                                                    );
-
-                                                }
-                                            );
+                                                        );
+                                                    }
+                                                );
 
 
-                                        if (!oProduct) {
+                                            if (!oProduct) {
 
-                                            MessageBox.error(
-                                                "Selected product was not found."
-                                            );
+                                                MessageBox.error(
+                                                    "Selected product was not found."
+                                                );
 
-                                            return;
-
-                                        }
-
-
-                                        var iStock =
-                                            Number(
-                                                oProduct.stockQty || 0
-                                            );
+                                                return;
+                                            }
 
 
-                                        if (
-                                            iStock <
-                                            iQuantity
-                                        ) {
+                                            const iProductStock =
+                                                Number(
+                                                    oProduct.stockQty ||
+                                                    0
+                                                );
 
-                                            MessageBox.warning(
-                                                "Insufficient stock.\n\n" +
-                                                "Available stock: " +
-                                                iStock +
-                                                "\nRequested quantity: " +
+
+                                            if (
+                                                iProductStock <
                                                 iQuantity
-                                            );
+                                            ) {
 
-                                            return;
+                                                MessageBox.warning(
 
-                                        }
+                                                    "Insufficient stock for " +
+                                                    oProduct.productName +
+                                                    ".\n\n" +
+
+                                                    "Available stock: " +
+                                                    iProductStock +
+
+                                                    "\nRequested quantity: " +
+                                                    iQuantity
+                                                );
+
+                                                return;
+                                            }
 
 
-                                        try {
+                                            oProductMap[
+                                                sProductID
+                                            ] = true;
 
-                                            await this._createSale({
 
-                                                customerID:
-                                                    sCustomerID,
+                                            aSaleProducts.push({
 
                                                 productID:
                                                     sProductID,
 
                                                 quantity:
                                                     iQuantity
-
                                             });
+                                        }
+
+
+                                        // =====================================
+                                        // CREATE ALL SALES
+                                        // =====================================
+
+                                        try {
+
+                                            for (
+                                                let i = 0;
+                                                i <
+                                                aSaleProducts.length;
+                                                i++
+                                            ) {
+
+                                                await this._createSale({
+
+                                                    customerID:
+                                                        sCustomerID,
+
+                                                    productID:
+                                                        aSaleProducts[i]
+                                                            .productID,
+
+                                                    quantity:
+                                                        aSaleProducts[i]
+                                                            .quantity
+
+                                                });
+                                            }
+
+
+                                            // Reload only once
+                                            await this._loadSales();
+
+                                            await this._loadProducts();
+
+                                            this._computeAnalytics();
+
 
                                             oDialog.close();
+
+
+                                            MessageToast.show(
+                                                aSaleProducts.length +
+                                                " product sale item(s) created successfully. Status: Pending."
+                                            );
 
                                         } catch (error) {
 
                                             console.error(
+                                                "Create sale error:",
                                                 error
                                             );
 
+                                            MessageBox.error(
+                                                this._getErrorMessage(
+                                                    error
+                                                )
+                                            );
                                         }
 
                                     }.bind(this)
@@ -974,7 +1140,12 @@ sap.ui.define([
                             }),
 
 
+                        // =================================================
+                        // CANCEL
+                        // =================================================
+
                         endButton:
+
                             new Button({
 
                                 text:
@@ -982,6 +1153,7 @@ sap.ui.define([
 
                                 press:
                                     function () {
+
                                         oDialog.close();
                                     }
 
@@ -990,18 +1162,19 @@ sap.ui.define([
 
                         afterClose:
                             function () {
+
                                 oDialog.destroy();
                             }
 
                     });
 
 
-                this.getView()
-                    .addDependent(
-                        oDialog
-                    );
+                this.getView().addDependent(
+                    oDialog
+                );
 
                 oDialog.open();
+
 
             } catch (error) {
 
@@ -1013,7 +1186,6 @@ sap.ui.define([
                 MessageBox.error(
                     this._getErrorMessage(error)
                 );
-
             }
 
         },
@@ -1027,21 +1199,18 @@ sap.ui.define([
             oSaleData
         ) {
 
-            var response =
+            const response =
                 await fetch(
                     "/odata/v4/sales-inventory/Sales",
                     {
-
                         method: "POST",
 
                         headers: {
-
                             "Content-Type":
                                 "application/json",
 
                             "Accept":
                                 "application/json"
-
                         },
 
                         body:
@@ -1055,21 +1224,19 @@ sap.ui.define([
 
                                 quantity:
                                     oSaleData.quantity
-
                             })
-
                     }
                 );
 
 
             if (!response.ok) {
 
-                var sMessage =
+                let sErrorMessage =
                     "Unable to create sale.";
 
                 try {
 
-                    var oError =
+                    const oError =
                         await response.json();
 
                     if (
@@ -1078,9 +1245,8 @@ sap.ui.define([
                         oError.error.message
                     ) {
 
-                        sMessage =
+                        sErrorMessage =
                             oError.error.message;
-
                     }
 
                 } catch (e) {
@@ -1088,33 +1254,12 @@ sap.ui.define([
                 }
 
                 throw new Error(
-                    sMessage
+                    sErrorMessage
                 );
-
             }
 
 
-            var oCreated =
-                await response.json();
-
-
-            await this._loadSales();
-            await this._loadProducts();
-            await this._loadInventory();
-
-            this._computeAnalytics();
-
-            this._reapplySaleFilters();
-            this._reapplyInventoryFilters();
-
-
-            MessageToast.show(
-                "Sale created successfully. Status: Pending."
-            );
-
-
-            return oCreated;
-
+            return await response.json();
         },
 
 
@@ -1124,11 +1269,10 @@ sap.ui.define([
 
         onCompleteSale: async function () {
 
-            var oItem =
+            const oItem =
                 this.oSelectedSale ||
-                this.byId(
-                    "salesTable"
-                ).getSelectedItem();
+                this.byId("salesTable")
+                    .getSelectedItem();
 
 
             if (!oItem) {
@@ -1142,27 +1286,11 @@ sap.ui.define([
             }
 
 
-            var oContext =
-                oItem.getBindingContext(
-                    "local"
-                );
 
-
-            if (!oContext) {
-
-                MessageBox.error(
-                    "Sale context could not be found."
-                );
-
-                return;
-
-            }
-
-
-            var sID =
-                oContext.getProperty(
-                    "ID"
-                );
+            const sID =
+                oItem
+                    .getBindingContext("local")
+                    .getProperty("ID");
 
 
             try {
@@ -1175,30 +1303,24 @@ sap.ui.define([
                 );
 
 
-                await this._loadSales();
-                await this._loadProducts();
-                await this._loadInventory();
-
-                this._computeAnalytics();
-
-                this._reapplySaleFilters();
-                this._reapplyInventoryFilters();
-
-                this._clearSaleSelection();
-
-
                 MessageToast.show(
                     "Sale completed successfully."
                 );
 
+
+                await this._loadSales();
+
+                await this._loadProducts();
+
+                this._computeAnalytics();
+
+                this._clearSaleSelection();
+
             } catch (error) {
 
                 MessageBox.error(
-                    this._getErrorMessage(
-                        error
-                    )
+                    this._getErrorMessage(error)
                 );
-
             }
 
         },
@@ -1210,11 +1332,10 @@ sap.ui.define([
 
         onCancelSale: async function () {
 
-            var oItem =
+            const oItem =
                 this.oSelectedSale ||
-                this.byId(
-                    "salesTable"
-                ).getSelectedItem();
+                this.byId("salesTable")
+                    .getSelectedItem();
 
 
             if (!oItem) {
@@ -1228,27 +1349,11 @@ sap.ui.define([
             }
 
 
-            var oContext =
-                oItem.getBindingContext(
-                    "local"
-                );
 
-
-            if (!oContext) {
-
-                MessageBox.error(
-                    "Sale context could not be found."
-                );
-
-                return;
-
-            }
-
-
-            var sID =
-                oContext.getProperty(
-                    "ID"
-                );
+            const sID =
+                oItem
+                    .getBindingContext("local")
+                    .getProperty("ID");
 
 
             try {
@@ -1261,37 +1366,29 @@ sap.ui.define([
                 );
 
 
-                await this._loadSales();
-                await this._loadProducts();
-                await this._loadInventory();
-
-                this._computeAnalytics();
-
-                this._reapplySaleFilters();
-                this._reapplyInventoryFilters();
-
-                this._clearSaleSelection();
-
-
                 MessageToast.show(
                     "Sale cancelled successfully."
                 );
 
+
+                await this._loadSales();
+
+                this._computeAnalytics();
+
+                this._clearSaleSelection();
+
             } catch (error) {
 
                 MessageBox.error(
-                    this._getErrorMessage(
-                        error
-                    )
+                    this._getErrorMessage(error)
                 );
-
             }
 
         },
 
 
         // =========================================================
-        // REFRESH ALL
+        // REFRESH
         // =========================================================
 
         onRefresh: async function () {
@@ -1300,104 +1397,22 @@ sap.ui.define([
 
                 await Promise.all([
                     this._loadProducts(),
-                    this._loadSales(),
-                    this._loadCustomers()
+                    this._loadSales()
                 ]);
-
-                await this._loadInventory();
 
                 this._computeAnalytics();
 
                 this._clearProductSelection();
+
                 this._clearSaleSelection();
 
-                this._reapplySaleFilters();
-                this._reapplyInventoryFilters();
-
-
                 MessageToast.show(
-                    "Data refreshed successfully."
+                    "Products and Sales refreshed successfully."
                 );
 
             } catch (error) {
 
-                console.error(
-                    "Refresh error:",
-                    error
-                );
-
-            }
-
-        },
-
-
-        // =========================================================
-        // REAPPLY SALES FILTER
-        // =========================================================
-
-        _reapplySaleFilters: function () {
-
-            var oStatus =
-                this.byId(
-                    "saleStatusFilter"
-                );
-
-            var oStart =
-                this.byId(
-                    "startDateFilter"
-                );
-
-            var oEnd =
-                this.byId(
-                    "endDateFilter"
-                );
-
-
-            if (
-                !oStatus ||
-                !oStart ||
-                !oEnd
-            ) {
-                return;
-            }
-
-
-            var bHasFilter =
-                oStatus.getSelectedKey() !==
-                    "ALL" ||
-
-                !!oStart.getValue() ||
-
-                !!oEnd.getValue();
-
-
-            if (bHasFilter) {
-
-                this.onApplySaleFilter();
-
-            } else {
-
-                var oTable =
-                    this.byId(
-                        "salesTable"
-                    );
-
-                var oBinding =
-                    oTable &&
-                    oTable.getBinding(
-                        "items"
-                    );
-
-
-                if (oBinding) {
-
-                    oBinding.filter(
-                        [],
-                        "Application"
-                    );
-
-                }
-
+                console.error(error);
             }
 
         },
@@ -1412,87 +1427,76 @@ sap.ui.define([
             oPayload
         ) {
 
-            var response =
+            const response =
                 await fetch(
                     "/odata/v4/sales-inventory/" +
                     sAction,
                     {
-
                         method: "POST",
 
                         headers: {
-
                             "Content-Type":
                                 "application/json",
 
                             "Accept":
                                 "application/json"
-
                         },
 
                         body:
                             JSON.stringify(
                                 oPayload
                             )
-
                     }
                 );
 
 
             if (!response.ok) {
 
-                var sMessage =
+                let errorMessage =
                     "Action failed: " +
                     response.status;
 
-
                 try {
 
-                    var oError =
+                    const errorData =
                         await response.json();
 
                     if (
-                        oError &&
-                        oError.error &&
-                        oError.error.message
+                        errorData &&
+                        errorData.error &&
+                        errorData.error.message
                     ) {
 
-                        sMessage =
-                            oError.error.message;
-
+                        errorMessage =
+                            errorData.error.message;
                     }
 
                 } catch (e) {
                     // Ignore
                 }
 
-
                 throw new Error(
-                    sMessage
+                    errorMessage
                 );
-
             }
 
 
-            var sText =
+            const text =
                 await response.text();
 
 
-            if (!sText) {
+            if (!text) {
                 return null;
             }
 
 
             try {
 
-                return JSON.parse(
-                    sText
-                );
+                return JSON.parse(text);
 
             } catch (e) {
 
-                return sText;
-
+                return text;
             }
 
         },
@@ -1503,7 +1507,7 @@ sap.ui.define([
         // =========================================================
 
         getProductName: function (
-            sProductID
+            sProductId
         ) {
 
             if (
@@ -1516,41 +1520,66 @@ sap.ui.define([
             }
 
 
-            var aProducts =
-                this.oLocalModel
-                    .getProperty(
+            const aProducts =
+                (
+                    this.oLocalModel &&
+                    this.oLocalModel.getProperty(
                         "/products"
-                    ) || [];
+                    )
+                ) || [];
 
 
-            var sID =
-                String(
-                    sProductID
-                );
+            const sId =
+                String(sProductId);
 
 
-            var oProduct =
+            const oProduct =
                 aProducts.find(
-                    function (oProduct) {
+                    function (oP) {
 
-                        if (!oProduct) {
+                        if (!oP) {
                             return false;
                         }
 
-                        return (
-                            String(
-                                oProduct.ID
-                            ) === sID
-                        );
 
+                        if (
+                            oP.ID !== undefined &&
+                            oP.ID !== null &&
+                            String(oP.ID) === sId
+                        ) {
+                            return true;
+                        }
+
+
+                        if (
+                            oP.product_ID !== undefined &&
+                            oP.product_ID !== null &&
+                            String(oP.product_ID) === sId
+                        ) {
+                            return true;
+                        }
+
+
+                        if (
+                            oP.id !== undefined &&
+                            oP.id !== null &&
+                            String(oP.id) === sId
+                        ) {
+                            return true;
+                        }
+
+
+                        return false;
                     }
                 );
 
 
-            return oProduct
+            return (
+                oProduct &&
+                oProduct.productName
+            )
                 ? oProduct.productName
-                : "Unknown Product";
-
+                : "";
         },
 
 
@@ -1560,89 +1589,76 @@ sap.ui.define([
 
         _computeAnalytics: function () {
 
-            var aSales =
+            const aSales =
                 this.oLocalModel.getProperty(
                     "/sales"
                 ) || [];
 
 
-            if (
-                aSales.length === 0
-            ) {
+            if (aSales.length === 0) {
 
                 this.oLocalModel.setProperty(
                     "/analytics",
                     {
-
                         totalRevenue: 0,
-
                         totalSalesCount: 0,
-
                         avgSaleValue: 0,
-
                         completionRate: 0,
-
                         salesTrend: [],
-
                         categoryBreakdown: [],
-
                         topProducts: []
-
                     }
                 );
 
                 return;
-
             }
 
 
-            var totalRevenue =
+            const totalRevenue =
                 aSales.reduce(
                     function (
-                        total,
-                        oSale
+                        sum,
+                        s
                     ) {
 
                         return (
-                            total +
+                            sum +
                             (
                                 Number(
-                                    oSale.totalAmount
+                                    s.totalAmount
                                 ) || 0
                             )
                         );
-
                     },
                     0
                 );
 
 
-            var totalSalesCount =
+            const totalSalesCount =
                 aSales.length;
 
 
-            var avgSaleValue =
-                totalSalesCount
+            const avgSaleValue =
+                totalSalesCount > 0
                     ? totalRevenue /
-                      totalSalesCount
+                    totalSalesCount
                     : 0;
 
 
-            var completedCount =
+            const completedCount =
                 aSales.filter(
-                    function (oSale) {
+                    function (s) {
 
                         return (
-                            oSale.status ===
+                            s.status ===
                             "Completed"
                         );
-
                     }
                 ).length;
 
 
-            var completionRate =
-                totalSalesCount
+            const completionRate =
+                totalSalesCount > 0
                     ? (
                         completedCount /
                         totalSalesCount
@@ -1650,20 +1666,16 @@ sap.ui.define([
                     : 0;
 
 
-            // -----------------------------------------------------
-            // SALES TREND
-            // -----------------------------------------------------
-
-            var oTrendMap = {};
+            const oTrendMap = {};
 
 
             aSales.forEach(
-                function (oSale) {
+                function (s) {
 
-                    var sDate =
-                        oSale.saleDate
+                    const sDate =
+                        s.saleDate
                             ? String(
-                                oSale.saleDate
+                                s.saleDate
                             ).split("T")[0]
                             : "Unknown";
 
@@ -1675,15 +1687,14 @@ sap.ui.define([
                         ) +
                         (
                             Number(
-                                oSale.totalAmount
+                                s.totalAmount
                             ) || 0
                         );
-
                 }
             );
 
 
-            var salesTrend =
+            const salesTrend =
                 Object.keys(
                     oTrendMap
                 )
@@ -1699,32 +1710,32 @@ sap.ui.define([
                                 value:
                                     Math.round(
                                         oTrendMap[
-                                            sDate
+                                        sDate
                                         ]
                                     )
-
                             };
-
                         }
                     );
 
 
-            // -----------------------------------------------------
-            // CATEGORY
-            // -----------------------------------------------------
-
-            var oCategoryMap = {};
+            const oCategoryMap = {};
 
 
             aSales.forEach(
-                function (oSale) {
+                function (s) {
 
-                    var sCategory =
-                        oSale.product &&
-                        oSale.product.category &&
-                        oSale.product.category.categoryName
-                            ? oSale.product.category.categoryName
-                            : "Uncategorized";
+                    const sCategory =
+                        (
+                            s.product &&
+                            s.product.category &&
+                            s.product.category
+                                .categoryName
+                        )
+                            ?
+                            s.product.category
+                                .categoryName
+                            :
+                            "Uncategorized";
 
 
                     oCategoryMap[
@@ -1732,20 +1743,19 @@ sap.ui.define([
                     ] =
                         (
                             oCategoryMap[
-                                sCategory
+                            sCategory
                             ] || 0
                         ) +
                         (
                             Number(
-                                oSale.totalAmount
+                                s.totalAmount
                             ) || 0
                         );
-
                 }
             );
 
 
-            var categoryBreakdown =
+            const categoryBreakdown =
                 Object.keys(
                     oCategoryMap
                 )
@@ -1761,47 +1771,49 @@ sap.ui.define([
 
                                 percent:
                                     totalRevenue > 0
-                                        ? Math.round(
+                                        ?
+                                        Math.round(
                                             (
                                                 oCategoryMap[
-                                                    sCategory
+                                                sCategory
                                                 ] /
                                                 totalRevenue
                                             ) * 100
                                         )
-                                        : 0
-
+                                        :
+                                        0
                             };
-
                         }
                     )
                     .sort(
-                        function (a, b) {
+                        function (
+                            a,
+                            b
+                        ) {
 
                             return (
                                 b.percent -
                                 a.percent
                             );
-
                         }
                     );
 
 
-            // -----------------------------------------------------
-            // TOP PRODUCTS
-            // -----------------------------------------------------
-
-            var oProductMap = {};
+            const oProductMap = {};
 
 
             aSales.forEach(
-                function (oSale) {
+                function (s) {
 
-                    var sProductName =
-                        oSale.product &&
-                        oSale.product.productName
-                            ? oSale.product.productName
-                            : "Unknown";
+                    const sProductName =
+                        (
+                            s.product &&
+                            s.product.productName
+                        )
+                            ?
+                            s.product.productName
+                            :
+                            "Unknown";
 
 
                     oProductMap[
@@ -1809,20 +1821,19 @@ sap.ui.define([
                     ] =
                         (
                             oProductMap[
-                                sProductName
+                            sProductName
                             ] || 0
                         ) +
                         (
                             Number(
-                                oSale.totalAmount
+                                s.totalAmount
                             ) || 0
                         );
-
                 }
             );
 
 
-            var topProducts =
+            const topProducts =
                 Object.keys(
                     oProductMap
                 )
@@ -1837,22 +1848,22 @@ sap.ui.define([
                                 value:
                                     Math.round(
                                         oProductMap[
-                                            sName
+                                        sName
                                         ]
                                     )
-
                             };
-
                         }
                     )
                     .sort(
-                        function (a, b) {
+                        function (
+                            a,
+                            b
+                        ) {
 
                             return (
                                 b.value -
                                 a.value
                             );
-
                         }
                     )
                     .slice(
@@ -1891,31 +1902,25 @@ sap.ui.define([
 
                     topProducts:
                         topProducts
-
                 }
             );
-
         },
 
 
-        // =========================================================
-        // ANALYTICS REFRESH
-        // =========================================================
+        onRefreshAnalytics:
+            async function () {
 
-        onRefreshAnalytics: async function () {
+                await Promise.all([
+                    this._loadSales(),
+                    this._loadProducts()
+                ]);
 
-            await Promise.all([
-                this._loadSales(),
-                this._loadProducts()
-            ]);
+                this._computeAnalytics();
 
-            this._computeAnalytics();
-
-            MessageToast.show(
-                "Analytics refreshed successfully."
-            );
-
-        },
+                MessageToast.show(
+                    "Analytics refreshed successfully."
+                );
+            },
 
 
         // =========================================================
@@ -1932,841 +1937,18 @@ sap.ui.define([
         // 404 for that request.
         // =========================================================
 
-        _loadInventory: async function () {
-
-            try {
-
-                var oModel =
-                    this.getView()
-                        .getModel(
-                            "inventory"
-                        );
-
-
-                if (!oModel) {
-
-                    throw new Error(
-                        "Inventory OData model is not available. " +
-                        "Please check manifest.json."
-                    );
-
-                }
-
-
-                var oListBinding =
-                    oModel.bindList(
-                        "/Inventory",
-                        undefined,
-                        undefined,
-                        undefined,
-                        {
-                            $expand:
-                                "warehouse"
-                        }
-                    );
-
-
-                var aContexts =
-                    await oListBinding.requestContexts(
-                        0,
-                        1000
-                    );
-
-
-                var aProducts =
-                    this.oLocalModel
-                        .getProperty(
-                            "/products"
-                        ) || [];
-
-
-                // =====================================================
-                // CREATE LOCAL INVENTORY ROWS
-                // =====================================================
-
-                var aInventory =
-                    aContexts.map(
-                        function (
-                            oContext
-                        ) {
-
-                            var oRow =
-                                oContext.getObject();
-
-
-                            // -------------------------------------------------
-                            // PRODUCT
-                            // -------------------------------------------------
-
-                            var sProductID =
-                                oRow.product_ID !==
-                                    undefined &&
-                                oRow.product_ID !==
-                                    null
-                                    ? String(
-                                        oRow.product_ID
-                                    )
-                                    : "";
-
-
-                            var oProduct =
-                                aProducts.find(
-                                    function (
-                                        oProductItem
-                                    ) {
-
-                                        if (
-                                            !oProductItem
-                                        ) {
-                                            return false;
-                                        }
-
-
-                                        return (
-                                            String(
-                                                oProductItem.ID
-                                            ) ===
-                                            sProductID
-                                        );
-
-                                    }
-                                );
-
-
-                            // -------------------------------------------------
-                            // STOCK
-                            // -------------------------------------------------
-
-                            var iStockQty =
-                                Number(
-                                    oRow.stockQty
-                                ) || 0;
-
-
-                            var iReservedQty =
-                                Number(
-                                    oRow.reservedQty
-                                ) || 0;
-
-
-                            var iAvailableQty =
-                                iStockQty -
-                                iReservedQty;
-
-
-                            // -------------------------------------------------
-                            // STOCK %
-                            // -------------------------------------------------
-
-                            var iStockPercent =
-                                0;
-
-
-                            if (
-                                iStockQty > 0
-                            ) {
-
-                                iStockPercent =
-                                    (
-                                        iAvailableQty /
-                                        iStockQty
-                                    ) * 100;
-
-                            }
-
-
-                            iStockPercent =
-                                Math.max(
-                                    0,
-                                    Math.min(
-                                        100,
-                                        iStockPercent
-                                    )
-                                );
-
-
-                            // -------------------------------------------------
-                            // STOCK STATUS
-                            // -------------------------------------------------
-
-                            var sStockStatus =
-                                "Out of Stock";
-
-
-                            if (
-                                iAvailableQty > 20
-                            ) {
-
-                                sStockStatus =
-                                    "In Stock";
-
-                            } else if (
-                                iAvailableQty > 0
-                            ) {
-
-                                sStockStatus =
-                                    "Low Stock";
-
-                            }
-
-
-                            // -------------------------------------------------
-                            // WAREHOUSE
-                            // -------------------------------------------------
-
-                            var oWarehouse =
-                                oRow.warehouse ||
-                                {};
-
-
-                            var sWarehouseName =
-                                oWarehouse.warehouseName ||
-                                oRow.warehouseName ||
-                                "Unknown Warehouse";
-
-
-                            var sWarehouseCode =
-                                oWarehouse.warehouseCode ||
-                                oRow.warehouseCode ||
-                                "";
-
-
-                            var sWarehouseKey =
-                                sWarehouseCode ||
-                                sWarehouseName;
-
-
-                            // -------------------------------------------------
-                            // RETURN LOCAL ROW
-                            // -------------------------------------------------
-
-                            return {
-
-                                ID:
-                                    oRow.ID,
-
-                                product_ID:
-                                    oRow.product_ID,
-
-                                productName:
-                                    oProduct &&
-                                    oProduct.productName
-                                        ? oProduct.productName
-                                        : "Unknown Product",
-
-                                warehouse:
-                                    oWarehouse,
-
-                                warehouseName:
-                                    sWarehouseName,
-
-                                warehouseCode:
-                                    sWarehouseCode,
-
-                                warehouseKey:
-                                    sWarehouseKey,
-
-                                stockQty:
-                                    iStockQty,
-
-                                reservedQty:
-                                    iReservedQty,
-
-                                availableQty:
-                                    iAvailableQty,
-
-                                stockPercent:
-                                    iStockPercent,
-
-                                stockStatus:
-                                    sStockStatus,
-
-                                lastUpdated:
-                                    oRow.lastUpdated
-
-                            };
-
-                        }
-                    );
-
-
-                // =====================================================
-                // SAVE INVENTORY
-                // =====================================================
-
-                this.oLocalModel.setProperty(
-                    "/inventoryRows",
-                    aInventory
-                );
-
-
-                // =====================================================
-                // CREATE WAREHOUSE DROPDOWN
-                //
-                // We build this from Inventory itself.
-                //
-                // This avoids another /Warehouses request and avoids
-                // the 404 problem you were seeing.
-                // =====================================================
-
-                var oWarehouseMap =
-                    {};
-
-
-                aInventory.forEach(
-                    function (
-                        oRow
-                    ) {
-
-                        if (
-                            !oRow ||
-                            !oRow.warehouseKey
-                        ) {
-                            return;
-                        }
-
-
-                        var sKey =
-                            oRow.warehouseKey;
-
-
-                        if (
-                            !oWarehouseMap[
-                                sKey
-                            ]
-                        ) {
-
-                            oWarehouseMap[
-                                sKey
-                            ] = {
-
-                                ID:
-                                    sKey,
-
-                                warehouseName:
-                                    oRow.warehouseName,
-
-                                warehouseCode:
-                                    oRow.warehouseCode
-
-                            };
-
-                        }
-
-                    }
-                );
-
-
-                // "All Warehouses" MUST be first.
-
-                var aWarehouses = [
-
-                    {
-
-                        ID:
-                            "ALL",
-
-                        warehouseName:
-                            "All Warehouses",
-
-                        warehouseCode:
-                            ""
-
-                    }
-
-                ];
-
-
-                Object.keys(
-                    oWarehouseMap
-                )
-                    .sort(
-                        function (a, b) {
-
-                            return (
-                                oWarehouseMap[a]
-                                    .warehouseName
-                                    .localeCompare(
-                                        oWarehouseMap[b]
-                                            .warehouseName
-                                    )
-                            );
-
-                        }
-                    )
-                    .forEach(
-                        function (
-                            sKey
-                        ) {
-
-                            aWarehouses.push(
-                                oWarehouseMap[
-                                    sKey
-                                ]
-                            );
-
-                        }
-                    );
-
-
-                this.oLocalModel.setProperty(
-                    "/inventoryFilters/warehouses",
-                    aWarehouses
-                );
-
-
-                console.log(
-                    "Inventory:",
-                    aInventory
-                );
-
-                console.log(
-                    "Warehouses:",
-                    aWarehouses
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "Inventory loading error:",
-                    error
-                );
-
-                MessageBox.error(
-                    "Unable to load Inventory.\n\n" +
-                    this._getErrorMessage(
-                        error
-                    )
-                );
-
-            }
-
-        },
-
-
-        // =========================================================
-        // INVENTORY REFRESH
-        // =========================================================
-
-        onRefreshInventory: async function () {
-
-            try {
-
-                await this._loadProducts();
-
-                await this._loadInventory();
-
-                this._reapplyInventoryFilters();
-
-
-                MessageToast.show(
-                    "Inventory refreshed successfully."
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "Inventory refresh error:",
-                    error
-                );
-
-            }
-
-        },
-
-
-        // =========================================================
-        // INVENTORY FILTER
-        // =========================================================
-
-        onApplyInventoryFilter: function () {
-
-            var oTable =
-                this.byId(
-                    "inventoryTable"
-                );
-
-
-            if (!oTable) {
-                return;
-            }
-
-
-            var oBinding =
-                oTable.getBinding(
-                    "items"
-                );
-
-
-            if (!oBinding) {
-                return;
-            }
-
-
-            var oProduct =
-                this.byId(
-                    "inventoryProductFilter"
-                );
-
-
-            var oWarehouse =
-                this.byId(
-                    "inventoryWarehouseFilter"
-                );
-
-
-            var oStock =
-                this.byId(
-                    "inventoryStockFilter"
-                );
-
-
-            var sProduct =
-                oProduct
-                    ? oProduct
-                        .getValue()
-                        .trim()
-                        .toLowerCase()
-                    : "";
-
-
-            var sWarehouse =
-                oWarehouse
-                    ? oWarehouse
-                        .getSelectedKey()
-                    : "ALL";
-
-
-            var sStock =
-                oStock
-                    ? oStock
-                        .getSelectedKey()
-                    : "ALL";
-
-
-            var aFilters = [];
-
-
-            // =====================================================
-            // PRODUCT NAME
-            // =====================================================
-
-            if (sProduct) {
-
-                aFilters.push(
-
-                    new Filter(
-                        "productName",
-                        FilterOperator.Contains,
-                        sProduct
-                    )
-
-                );
-
-            }
-
-
-            // =====================================================
-            // WAREHOUSE
-            // =====================================================
-
-            if (
-                sWarehouse &&
-                sWarehouse !== "ALL"
-            ) {
-
-                aFilters.push(
-
-                    new Filter(
-                        "warehouseKey",
-                        FilterOperator.EQ,
-                        sWarehouse
-                    )
-
-                );
-
-            }
-
-
-            // =====================================================
-            // STOCK STATUS
-            // =====================================================
-
-            if (
-                sStock ===
-                "IN_STOCK"
-            ) {
-
-                aFilters.push(
-
-                    new Filter(
-                        "availableQty",
-                        FilterOperator.GT,
-                        20
-                    )
-
-                );
-
-            }
-
-
-            else if (
-                sStock ===
-                "LOW_STOCK"
-            ) {
-
-                aFilters.push(
-
-                    new Filter({
-
-                        filters: [
-
-                            new Filter(
-                                "availableQty",
-                                FilterOperator.GT,
-                                0
-                            ),
-
-                            new Filter(
-                                "availableQty",
-                                FilterOperator.LE,
-                                20
-                            )
-
-                        ],
-
-                        and: true
-
-                    })
-
-                );
-
-            }
-
-
-            else if (
-                sStock ===
-                "OUT_OF_STOCK"
-            ) {
-
-                aFilters.push(
-
-                    new Filter(
-                        "availableQty",
-                        FilterOperator.LE,
-                        0
-                    )
-
-                );
-
-            }
-
-
-            // =====================================================
-            // APPLY
-            // =====================================================
-
-            oBinding.filter(
-                aFilters,
-                "Application"
-            );
-
-
-            var iCount =
-                oBinding.getLength();
-
-
-            if (iCount === 0) {
-
-                MessageToast.show(
-                    "No inventory records found."
-                );
-
-            } else {
-
-                MessageToast.show(
-                    iCount +
-                    " inventory record(s) found."
-                );
-
-            }
-
-        },
-
-
-        // =========================================================
-        // CLEAR INVENTORY FILTER
-        // =========================================================
-
-        onClearInventoryFilter: function () {
-
-            var oTable =
-                this.byId(
-                    "inventoryTable"
-                );
-
-
-            if (oTable) {
-
-                var oBinding =
-                    oTable.getBinding(
-                        "items"
-                    );
-
-
-                if (oBinding) {
-
-                    oBinding.filter(
-                        [],
-                        "Application"
-                    );
-
-                }
-
-            }
-
-
-            var oProduct =
-                this.byId(
-                    "inventoryProductFilter"
-                );
-
-
-            var oWarehouse =
-                this.byId(
-                    "inventoryWarehouseFilter"
-                );
-
-
-            var oStock =
-                this.byId(
-                    "inventoryStockFilter"
-                );
-
-
-            if (oProduct) {
-
-                oProduct.setValue(
-                    ""
-                );
-
-            }
-
-
-            if (oWarehouse) {
-
-                oWarehouse.setSelectedKey(
-                    "ALL"
-                );
-
-            }
-
-
-            if (oStock) {
-
-                oStock.setSelectedKey(
-                    "ALL"
-                );
-
-            }
-
-
-            MessageToast.show(
-                "Inventory filters cleared."
-            );
-
-        },
-
-
-        // =========================================================
-        // REAPPLY INVENTORY FILTERS
-        // =========================================================
-
-        _reapplyInventoryFilters: function () {
-
-            var oProduct =
-                this.byId(
-                    "inventoryProductFilter"
-                );
-
-            var oWarehouse =
-                this.byId(
-                    "inventoryWarehouseFilter"
-                );
-
-            var oStock =
-                this.byId(
-                    "inventoryStockFilter"
-                );
-
-
-            if (
-                !oProduct ||
-                !oWarehouse ||
-                !oStock
-            ) {
-                return;
-            }
-
-
-            var bHasFilter =
-                !!oProduct
-                    .getValue()
-                    .trim() ||
-
-                oWarehouse
-                    .getSelectedKey() !==
-                    "ALL" ||
-
-                oStock
-                    .getSelectedKey() !==
-                    "ALL";
-
-
-            if (bHasFilter) {
-
-                this.onApplyInventoryFilter();
-
-            } else {
-
-                var oTable =
-                    this.byId(
-                        "inventoryTable"
-                    );
-
-
-                var oBinding =
-                    oTable &&
-                    oTable.getBinding(
-                        "items"
-                    );
-
-
-                if (oBinding) {
-
-                    oBinding.filter(
-                        [],
-                        "Application"
-                    );
-
-                }
-
-            }
-
-        },
-
-
-        // =========================================================
-        // INVENTORY ACTION MODEL
-        // =========================================================
-
         _getInventoryModel: function () {
 
             return this.getView()
-                .getModel(
-                    "inventory"
-                );
+                .getModel("inventory");
+        },
 
+
+        _showError: function (oError) {
+
+            MessageBox.error(
+                this._getErrorMessage(oError)
+            );
         },
 
 
@@ -2776,22 +1958,28 @@ sap.ui.define([
                 mParams
             ) {
 
-                var oModel =
+                const oModel =
                     this._getInventoryModel();
 
 
                 if (!oModel) {
 
-                    throw new Error(
-                        "Inventory OData model is not available."
+                    const oError =
+                        new Error(
+                            "Inventory OData model is not available. Please check manifest.json."
+                        );
+
+                    this._showError(
+                        oError
                     );
 
+                    throw oError;
                 }
 
 
                 try {
 
-                    var oAction =
+                    const oAction =
                         oModel.bindContext(
                             "/" +
                             sActionName +
@@ -2808,27 +1996,37 @@ sap.ui.define([
 
                             oAction.setParameter(
                                 sKey,
-                                mParams[
-                                    sKey
-                                ]
+                                mParams[sKey]
                             );
-
                         }
                     );
 
 
-                    var result =
+                    const result =
                         await oAction.execute();
+
+
+                    const oTable =
+                        this.byId(
+                            "inventoryTable"
+                        );
+
+
+                    const oBinding =
+                        oTable &&
+                        oTable.getBinding(
+                            "items"
+                        );
+
+
+                    if (oBinding) {
+                        oBinding.refresh();
+                    }
 
 
                     await this._loadProducts();
 
-                    await this._loadInventory();
-
                     this._computeAnalytics();
-
-                    this._reapplyInventoryFilters();
-
 
                     MessageToast.show(
                         sActionName +
@@ -2838,56 +2036,87 @@ sap.ui.define([
 
                     return result;
 
-                } catch (error) {
+                } catch (oError) {
 
                     console.error(
                         "Inventory action error:",
-                        error
+                        oError
                     );
 
-                    MessageBox.error(
-                        this._getErrorMessage(
-                            error
-                        )
+                    this._showError(
+                        oError
                     );
 
-                    throw error;
-
+                    throw oError;
                 }
-
             },
 
 
-        // =========================================================
-        // FIND INVENTORY ROW
-        // =========================================================
+        onRefreshInventory: function () {
 
-        _getRowContext: function (
-            oEvent
-        ) {
+            const oTable =
+                this.byId(
+                    "inventoryTable"
+                );
 
-            var oControl =
+
+            if (!oTable) {
+
+                MessageBox.error(
+                    "Inventory table not found."
+                );
+
+                return;
+            }
+
+
+            const oBinding =
+                oTable.getBinding(
+                    "items"
+                );
+
+
+            if (!oBinding) {
+
+                MessageBox.warning(
+                    "Inventory binding is not available."
+                );
+
+                return;
+            }
+
+
+            oBinding.refresh();
+
+            this._loadProducts();
+
+            MessageToast.show(
+                "Inventory refreshed successfully."
+            );
+        },
+
+
+        _getRowContext: function (oEvent) {
+
+            let oControl =
                 oEvent.getSource();
 
 
             while (oControl) {
 
-                var oLocalContext =
+                const oContext =
                     oControl.getBindingContext(
-                        "local"
+                        "inventory"
                     );
 
 
-                if (oLocalContext) {
-
-                    return oLocalContext;
-
+                if (oContext) {
+                    return oContext;
                 }
 
 
                 oControl =
                     oControl.getParent();
-
             }
 
 
@@ -2896,181 +2125,161 @@ sap.ui.define([
         },
 
 
-        // =========================================================
-        // QUANTITY DIALOG
-        // =========================================================
+        _openQtyDialog:
+            function (
+                sTitle,
+                sActionName,
+                sInventoryID
+            ) {
 
-        _openQtyDialog: function (
-            sTitle,
-            sActionName,
-            sInventoryID
-        ) {
+                if (!sInventoryID) {
 
-            if (!sInventoryID) {
+                    MessageBox.error(
+                        "Inventory ID is missing. Cannot proceed."
+                    );
 
-                MessageBox.error(
-                    "Inventory ID is missing."
-                );
-
-                return;
-
-            }
+                    return;
+                }
 
 
-            var oInput =
-                new Input({
+                const oInput =
+                    new Input({
 
-                    type:
-                        "Number",
+                        type:
+                            "Number",
 
-                    placeholder:
-                        "Enter quantity",
+                        placeholder:
+                            "Enter quantity",
 
-                    width:
-                        "100%"
-
-                });
-
-
-            var oDialog =
-                new Dialog({
-
-                    title:
-                        sTitle,
-
-                    contentWidth:
-                        "20rem",
-
-                    content:
-                        new VBox({
-
-                            items: [
-
-                                new Label({
-                                    text:
-                                        "Quantity"
-                                }),
-
-                                oInput
-
-                            ]
-
-                        }).addStyleClass(
-                            "sapUiSmallMargin"
-                        ),
+                        width:
+                            "100%"
+                    });
 
 
-                    beginButton:
-                        new Button({
+                const oDialog =
+                    new Dialog({
 
-                            text:
-                                "Submit",
+                        title:
+                            sTitle,
 
-                            type:
-                                "Emphasized",
+                        contentWidth:
+                            "20rem",
 
-                            press:
-                                async function () {
+                        content:
+                            new VBox({
 
-                                    var iQuantity =
-                                        parseInt(
-                                            oInput.getValue(),
-                                            10
-                                        );
+                                items: [
 
+                                    new Label({
+                                        text:
+                                            "Quantity"
+                                    }),
 
-                                    if (
-                                        !Number.isInteger(
-                                            iQuantity
-                                        ) ||
-                                        iQuantity <= 0
-                                    ) {
+                                    oInput
 
-                                        MessageBox.warning(
-                                            "Please enter a valid quantity greater than zero."
-                                        );
+                                ]
 
-                                        return;
-
-                                    }
+                            }).addStyleClass(
+                                "sapUiSmallMargin"
+                            ),
 
 
-                                    try {
+                        beginButton:
+                            new Button({
 
-                                        await this
-                                            ._callInventoryAction(
-                                                sActionName,
-                                                {
+                                text:
+                                    "Submit",
 
-                                                    inventoryID:
-                                                        sInventoryID,
+                                type:
+                                    "Emphasized",
 
-                                                    quantity:
-                                                        iQuantity
+                                press:
+                                    async () => {
 
-                                                }
+                                        const iQuantity =
+                                            parseInt(
+                                                oInput
+                                                    .getValue(),
+                                                10
                                             );
 
 
-                                        oDialog.close();
+                                        if (
+                                            !Number.isInteger(
+                                                iQuantity
+                                            ) ||
+                                            iQuantity <= 0
+                                        ) {
 
-                                    } catch (error) {
+                                            MessageBox.warning(
+                                                "Please enter a valid quantity greater than zero."
+                                            );
 
-                                        // Error already shown
+                                            return;
+                                        }
 
+
+                                        try {
+
+                                            await this
+                                                ._callInventoryAction(
+                                                    sActionName,
+                                                    {
+                                                        inventoryID:
+                                                            sInventoryID,
+
+                                                        quantity:
+                                                            iQuantity
+                                                    }
+                                                );
+
+                                            oDialog.close();
+
+                                        } catch (error) {
+
+                                            // Error already shown
+                                        }
                                     }
 
-                                }.bind(this)
-
-                        }),
+                            }),
 
 
-                    endButton:
-                        new Button({
+                        endButton:
+                            new Button({
 
-                            text:
-                                "Cancel",
+                                text:
+                                    "Cancel",
 
-                            press:
-                                function () {
+                                press:
+                                    function () {
+                                        oDialog.close();
+                                    }
 
-                                    oDialog.close();
-
-                                }
-
-                        }),
+                            }),
 
 
-                    afterClose:
-                        function () {
+                        afterClose:
+                            function () {
+                                oDialog.destroy();
+                            }
 
-                            oDialog.destroy();
-
-                        }
-
-                });
+                    });
 
 
-            this.getView()
-                .addDependent(
-                    oDialog
-                );
+                this.getView()
+                    .addDependent(
+                        oDialog
+                    );
 
+                oDialog.open();
+            },
 
-            oDialog.open();
-
-        },
-
-
-        // =========================================================
-        // ADJUST STOCK
-        // =========================================================
 
         onAdjustStock: function (
             oEvent
         ) {
 
-            var oContext =
+            const oContext =
                 this._getRowContext(
                     oEvent
                 );
@@ -3088,29 +2297,20 @@ sap.ui.define([
 
 
             this._openQtyDialog(
-
                 "Adjust Stock",
-
                 "adjustStock",
-
                 oContext.getProperty(
                     "ID"
                 )
-
             );
-
         },
 
-
-        // =========================================================
-        // RESERVE STOCK
-        // =========================================================
 
         onReserveStock: function (
             oEvent
         ) {
 
-            var oContext =
+            const oContext =
                 this._getRowContext(
                     oEvent
                 );
@@ -3128,29 +2328,20 @@ sap.ui.define([
 
 
             this._openQtyDialog(
-
                 "Reserve Stock",
-
                 "reserveStock",
-
                 oContext.getProperty(
                     "ID"
                 )
-
             );
-
         },
 
-
-        // =========================================================
-        // RELEASE STOCK
-        // =========================================================
 
         onReleaseStock: function (
             oEvent
         ) {
 
-            var oContext =
+            const oContext =
                 this._getRowContext(
                     oEvent
                 );
@@ -3168,17 +2359,12 @@ sap.ui.define([
 
 
             this._openQtyDialog(
-
                 "Release Stock",
-
                 "releaseStock",
-
                 oContext.getProperty(
                     "ID"
                 )
-
             );
-
         },
 
 
@@ -3186,131 +2372,479 @@ sap.ui.define([
         // CLEAR PRODUCT SELECTION
         // =========================================================
 
-        _clearProductSelection:
-            function () {
+        _clearProductSelection: function () {
 
-                this.oSelectedProduct =
-                    null;
+            this.oSelectedProduct = null;
 
-
-                var oTable =
-                    this.byId(
-                        "productsTable"
-                    );
+            const oTable =
+                this.byId(
+                    "productsTable"
+                );
 
 
-                if (oTable) {
-
-                    oTable.removeSelections(
-                        true
-                    );
-
-                }
-
-            },
+            if (oTable) {
+                oTable.removeSelections(true);
+            }
+        },
 
 
-        // =========================================================
-        // CLEAR SALE SELECTION
-        // =========================================================
+        _clearSaleSelection: function () {
 
-        _clearSaleSelection:
-            function () {
+            this.oSelectedSale = null;
 
-                this.oSelectedSale =
-                    null;
-
-
-                var oTable =
-                    this.byId(
-                        "salesTable"
-                    );
+            const oTable =
+                this.byId(
+                    "salesTable"
+                );
 
 
-                if (oTable) {
-
-                    oTable.removeSelections(
-                        true
-                    );
-
-                }
+            if (oTable) {
+                oTable.removeSelections(true);
+            }
 
 
-                var oComplete =
-                    this.byId(
-                        "completeSaleButton"
-                    );
+            this.byId(
+                "completeSaleButton"
+            ).setEnabled(false);
 
 
-                var oCancel =
-                    this.byId(
-                        "cancelSaleButton"
-                    );
-
-
-                if (oComplete) {
-
-                    oComplete.setEnabled(
-                        false
-                    );
-
-                }
-
-
-                if (oCancel) {
-
-                    oCancel.setEnabled(
-                        false
-                    );
-
-                }
-
-            },
+            this.byId(
+                "cancelSaleButton"
+            ).setEnabled(false);
+        },
 
 
         // =========================================================
         // ERROR
         // =========================================================
 
-        _getErrorMessage:
-            function (
-                error
-            ) {
+        _getErrorMessage: function (
+            error
+        ) {
 
-                if (!error) {
-
-                    return (
-                        "Unknown error occurred."
-                    );
-
-                }
-
-
-                if (error.message) {
-
-                    return error.message;
-
-                }
-
-
-                if (
-                    error.error &&
-                    error.error.message
-                ) {
-
-                    return (
-                        error.error.message
-                    );
-
-                }
-
-
-                return String(
-                    error
-                );
-
+            if (!error) {
+                return "Unknown error occurred.";
             }
 
+
+            if (error.message) {
+                return error.message;
+            }
+
+
+            if (
+                error.error &&
+                error.error.message
+            ) {
+
+                return error.error.message;
+            }
+
+
+            return String(error);
+        },
+        // =========================================================
+        // INVENTORY FILTERS (applied only on "Filter" button click)
+        // =========================================================
+
+        // Search/Select events are wired in XML but intentionally
+        // do nothing here — filtering only happens when the
+        // Filter button is pressed (onApplyInventoryFilters)
+        onInventoryFilterChange: function () {
+            // no-op: filters apply only via the Filter button
+        },
+
+        onApplyInventoryFilters: function () {
+            this._applyInventoryFilters();
+        },
+
+        _applyInventoryFilters: function () {
+
+            var oTable = this.byId("inventoryTable");
+
+            if (!oTable) {
+                MessageBox.error("Inventory table not found.");
+                return;
+            }
+
+            var oBinding = oTable.getBinding("items");
+
+            if (!oBinding) {
+                MessageBox.warning("Inventory table binding is not available.");
+                return;
+            }
+
+            var aFilters = [];
+
+            // -------------------------------------------------
+            // Search filter — matches by Product Name
+            // (inventory rows only carry product_ID, so we resolve
+            // matching product names to their IDs first, then
+            // filter inventory by those IDs using EQ)
+            // -------------------------------------------------
+            var oSearchField = this.byId("inventoryProductSearch");
+            var sSearchQuery = oSearchField ? (oSearchField.getValue() || "").trim() : "";
+
+            if (sSearchQuery) {
+
+                var aProducts = this.oLocalModel.getProperty("/products") || [];
+                var sQueryLower = sSearchQuery.toLowerCase();
+
+                var aMatchingIds = aProducts
+                    .filter(function (oProduct) {
+                        return oProduct.productName &&
+                            oProduct.productName.toLowerCase().indexOf(sQueryLower) !== -1;
+                    })
+                    .map(function (oProduct) {
+                        return oProduct.ID;
+                    });
+
+                if (aMatchingIds.length > 0) {
+
+                    var aIdFilters = aMatchingIds.map(function (sId) {
+                        return new Filter("product_ID", FilterOperator.EQ, sId);
+                    });
+
+                    aFilters.push(new Filter({ filters: aIdFilters, and: false }));
+
+                } else {
+
+                    // No product matched the search text — force zero results
+                    aFilters.push(new Filter("product_ID", FilterOperator.EQ, "__NO_MATCH__"));
+                }
+            }
+
+            // -------------------------------------------------
+            // Warehouse filter
+            // -------------------------------------------------
+            var oWarehouseSelect = this.byId("inventoryWarehouseFilter");
+            var sSelectedWarehouse = oWarehouseSelect ? oWarehouseSelect.getSelectedKey() : "";
+
+            if (sSelectedWarehouse && sSelectedWarehouse !== "All Warehouses") {
+                aFilters.push(
+                    new Filter("warehouse/warehouseName", FilterOperator.EQ, sSelectedWarehouse)
+                );
+            }
+
+            // -------------------------------------------------
+            // Stock status filter
+            // NOTE: key is "Out Of Stock" (exact case/spacing from XML)
+            // -------------------------------------------------
+            var oStockFilter = this.byId("inventoryStockStatusFilter");
+            var sStockStatus = oStockFilter ? oStockFilter.getSelectedKey() : "";
+
+            if (sStockStatus === "available") {
+                aFilters.push(new Filter("stockQty", FilterOperator.GT, 0));
+            } else if (sStockStatus === "Out Of Stock") {
+                aFilters.push(new Filter("stockQty", FilterOperator.EQ, 0));
+            }
+
+            // -------------------------------------------------
+            // Set contextual "no data" message BEFORE filtering
+            // -------------------------------------------------
+            oTable.setNoDataText(
+                this._buildInventoryNoDataText(sSelectedWarehouse, sStockStatus, sSearchQuery)
+            );
+
+            // Apply all active filters together (AND across categories)
+            oBinding.filter(aFilters);
+
+            MessageToast.show("Filters applied.");
+        },
+
+        // =========================================================
+        // BUILD CONTEXTUAL "NO DATA" MESSAGE
+        // =========================================================
+
+        _buildInventoryNoDataText: function (sWarehouse, sStockStatus, sSearchQuery) {
+
+            var bHasWarehouse = sWarehouse && sWarehouse !== "All Warehouses";
+            var sWarehouseLabel = "";
+
+            if (bHasWarehouse) {
+                var oWarehouseSelect = this.byId("inventoryWarehouseFilter");
+                var oSelectedItem = oWarehouseSelect.getSelectedItem();
+                sWarehouseLabel = oSelectedItem ? oSelectedItem.getText() : sWarehouse;
+            }
+
+            if (sSearchQuery) {
+                return "No products matching \"" + sSearchQuery + "\" were found" +
+                    (bHasWarehouse ? " in " + sWarehouseLabel : "") + ".";
+            }
+
+            if (sStockStatus === "Out Of Stock") {
+
+                return bHasWarehouse
+                    ? "There is no out of stock inventory in " + sWarehouseLabel + "."
+                    : "There is no out of stock inventory.";
+
+            } else if (sStockStatus === "available") {
+
+                return bHasWarehouse
+                    ? "No available stock found in " + sWarehouseLabel + "."
+                    : "No available stock found.";
+            }
+
+            return bHasWarehouse
+                ? "No inventory records available for " + sWarehouseLabel + "."
+                : "No inventory records available.";
+        },
+
+        // =========================================================
+        // CLEAR INVENTORY FILTERS
+        // =========================================================
+
+        onClearInventoryFilters: function () {
+
+            var oSearchField = this.byId("inventoryProductSearch");
+            var oWarehouseSelect = this.byId("inventoryWarehouseFilter");
+            var oStockFilter = this.byId("inventoryStockStatusFilter");
+            var oTable = this.byId("inventoryTable");
+
+            if (oSearchField) {
+                oSearchField.setValue("");
+            }
+
+            if (oWarehouseSelect) {
+                oWarehouseSelect.setSelectedKey("All Warehouses");
+            }
+
+            if (oStockFilter) {
+                oStockFilter.setSelectedKey("");
+            }
+
+            if (oTable) {
+                oTable.setNoDataText("No inventory records available");
+
+                var oBinding = oTable.getBinding("items");
+
+                if (oBinding) {
+                    oBinding.filter([]);
+                }
+            }
+
+            MessageToast.show("Inventory filters cleared.");
+        },
+        // =========================================================
+        // SALES FILTERS (applied only on "Filter" button click)
+        // =========================================================
+
+                // =========================================================
+        // SALES FILTERS (applied only on "Filter" button click)
+        // =========================================================
+
+        onApplySalesFilters: function () {
+            this._applySalesFilters();
+        },
+
+        _applySalesFilters: function () {
+
+            var oTable = this.byId("salesTable");
+
+            if (!oTable) {
+                MessageBox.error("Sales table not found.");
+                return;
+            }
+
+            var oBinding = oTable.getBinding("items");
+
+            if (!oBinding) {
+                MessageBox.warning("Sales table binding is not available.");
+                return;
+            }
+
+            var aFilters = [];
+
+            // -------------------------------------------------
+            // Search filter (sale number, customer, product)
+            // -------------------------------------------------
+            var oSearchField = this.byId("salesSearchField");
+            var sQuery = oSearchField ? (oSearchField.getValue() || "").trim() : "";
+
+            if (sQuery) {
+
+                var sQueryLower = sQuery.toLowerCase();
+
+                aFilters.push(
+                    new Filter({
+                        filters: [
+
+                            new Filter({
+                                path: "saleNumber",
+                                test: function (sVal) {
+                                    return sVal && String(sVal).toLowerCase().indexOf(sQueryLower) !== -1;
+                                }
+                            }),
+
+                            new Filter({
+                                path: "customer/customerName",
+                                test: function (sVal) {
+                                    return sVal && String(sVal).toLowerCase().indexOf(sQueryLower) !== -1;
+                                }
+                            }),
+
+                            new Filter({
+                                path: "product/productName",
+                                test: function (sVal) {
+                                    return sVal && String(sVal).toLowerCase().indexOf(sQueryLower) !== -1;
+                                }
+                            })
+
+                        ],
+                        and: false
+                    })
+                );
+            }
+
+            // -------------------------------------------------
+            // Status filter
+            // -------------------------------------------------
+            var oStatusSelect = this.byId("salesStatusFilter");
+            var sStatus = oStatusSelect ? oStatusSelect.getSelectedKey() : "";
+
+            if (sStatus) {
+                aFilters.push(
+                    new Filter("status", FilterOperator.EQ, sStatus)
+                );
+            }
+
+            // -------------------------------------------------
+            // Date range filter (saleDate between From and To)
+            // saleDate is stored as an ISO string, so we parse
+            // it manually inside a custom test function instead
+            // of relying on BT/GE/LE against Date objects
+            // -------------------------------------------------
+            var oDateFrom = this.byId("salesDateFrom");
+            var oDateTo = this.byId("salesDateTo");
+
+            var oFromDate = oDateFrom ? oDateFrom.getDateValue() : null;
+            var oToDate = oDateTo ? oDateTo.getDateValue() : null;
+
+            if (oFromDate || oToDate) {
+
+                var iFromTime = oFromDate ? new Date(
+                    oFromDate.getFullYear(),
+                    oFromDate.getMonth(),
+                    oFromDate.getDate(),
+                    0, 0, 0, 0
+                ).getTime() : null;
+
+                var iToTime = oToDate ? new Date(
+                    oToDate.getFullYear(),
+                    oToDate.getMonth(),
+                    oToDate.getDate(),
+                    23, 59, 59, 999
+                ).getTime() : null;
+
+                aFilters.push(
+                    new Filter({
+                        path: "saleDate",
+                        test: function (sSaleDate) {
+
+                            if (!sSaleDate) {
+                                return false;
+                            }
+
+                            var iRowTime = new Date(sSaleDate).getTime();
+
+                            if (isNaN(iRowTime)) {
+                                return false;
+                            }
+
+                            if (iFromTime !== null && iRowTime < iFromTime) {
+                                return false;
+                            }
+
+                            if (iToTime !== null && iRowTime > iToTime) {
+                                return false;
+                            }
+
+                            return true;
+                        }
+                    })
+                );
+            }
+
+            // -------------------------------------------------
+            // Set contextual "no data" message BEFORE filtering
+            // -------------------------------------------------
+            oTable.setNoDataText(
+                this._buildSalesNoDataText(sQuery, sStatus, oFromDate, oToDate)
+            );
+
+            // Apply all active filters together (AND across categories)
+            oBinding.filter(aFilters);
+
+            MessageToast.show("Filters applied.");
+        },
+
+        // =========================================================
+        // BUILD CONTEXTUAL "NO DATA" MESSAGE FOR SALES
+        // =========================================================
+
+        _buildSalesNoDataText: function (sQuery, sStatus, oFromDate, oToDate) {
+
+            var aParts = [];
+
+            if (sQuery) {
+                aParts.push("matching \"" + sQuery + "\"");
+            }
+
+            if (sStatus) {
+                aParts.push("with status \"" + sStatus + "\"");
+            }
+
+            if (oFromDate || oToDate) {
+                aParts.push("in the selected date range");
+            }
+
+            if (aParts.length === 0) {
+                return "No sales available";
+            }
+
+            return "No sales found " + aParts.join(" ") + ".";
+        },
+
+        // =========================================================
+        // CLEAR SALES FILTERS
+        // =========================================================
+
+        onClearSalesFilters: function () {
+
+            var oSearchField = this.byId("salesSearchField");
+            var oStatusSelect = this.byId("salesStatusFilter");
+            var oDateFrom = this.byId("salesDateFrom");
+            var oDateTo = this.byId("salesDateTo");
+            var oTable = this.byId("salesTable");
+
+            if (oSearchField) {
+                oSearchField.setValue("");
+            }
+
+            if (oStatusSelect) {
+                oStatusSelect.setSelectedKey("");
+            }
+
+            if (oDateFrom) {
+                oDateFrom.setValue("");
+            }
+
+            if (oDateTo) {
+                oDateTo.setValue("");
+            }
+
+            if (oTable) {
+                oTable.setNoDataText("No sales available");
+
+                var oBinding = oTable.getBinding("items");
+
+                if (oBinding) {
+                    oBinding.filter([]);
+                }
+            }
+
+            MessageToast.show("Sales filters cleared.");
+        }
     });
 
 });

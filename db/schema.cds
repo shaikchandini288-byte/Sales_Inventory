@@ -40,7 +40,7 @@ entity Sales : cuid {
     quantity : Decimal(15,2);
     unitPrice : Decimal(15,2);
     totalAmount : Decimal(15,2);
-    saleDate : DateTime;
+    saleDate : Date;
     status : String(20) default 'CREATED';
     remarks : String(255);
  
