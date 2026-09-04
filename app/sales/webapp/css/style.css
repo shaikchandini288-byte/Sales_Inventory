@@ -1,94 +1,42 @@
-/* Enter your custom styles here */
-
-/* =========================================================
-   GLOBAL
-========================================================= */
-
-.sapUiBody,
-.sapMPage {
-    background-color: #f5f6f7;
-}
-
-/* =========================================================
-   HEADER (ToolHeader)
-========================================================= */
-
-.sapTntToolHeader {
-    background-color: #ffffff !important;
-    border-bottom: 1px solid #e5e5e5;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-}
-
-/* =========================================================
-   SIDE NAVIGATION
-========================================================= */
-
-.sapTntSideNavigation {
-    background-color: #ffffff;
-    border-right: 1px solid #e5e5e5;
-}
-
-.sapTntNavLI.sapTntNLISelected > .sapTntNLIItem {
-    background-color: #eaf2ff !important;
-    border-left: 3px solid #0a6ed1;
-    border-radius: 0;
-    font-weight: 600;
-}
-
-.sapTntNLIItem:hover {
-    background-color: #f5f8ff;
-}
-
-/* =========================================================
-   DASHBOARD PAGE TITLE
-========================================================= */
+/* ===================== DASHBOARD ===================== */
 
 .dashboardPageTitle {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1d2d3e;
+    font-weight: 700 !important;
+    color: #1a1a2e;
 }
 
 .dashboardPageSubtitle {
-    color: #6a6d70;
+    color: #6b7280 !important;
     font-size: 0.95rem;
 }
 
-/* =========================================================
-   KPI CARDS — CSS GRID (fixes uneven wrapping)
-========================================================= */
-
 .dashboardKpiGrid {
-    display: grid;
+    display: grid !important;
     grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
+    gap: 1.25rem;
     width: 100%;
 }
 
-@media (max-width: 1100px) {
-    .dashboardKpiGrid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+@media (max-width: 1024px) {
+    .dashboardKpiGrid { grid-template-columns: repeat(2, 1fr); }
 }
-
 @media (max-width: 600px) {
-    .dashboardKpiGrid {
-        grid-template-columns: 1fr;
-    }
+    .dashboardKpiGrid { grid-template-columns: 1fr; }
 }
 
 .dashboardCard {
     background: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border-radius: 16px;
     overflow: hidden;
-    width: 100%;
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+    border: 1px solid #eef0f4;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    position: relative;
 }
 
 .dashboardCard:hover {
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.10);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.10), 0 2px 6px rgba(16, 24, 40, 0.06);
 }
 
 .dashboardCardBar {
@@ -96,141 +44,76 @@
     width: 100%;
 }
 
-.barBlue   { background: linear-gradient(90deg, #4C6FFF, #7B93FF); }
-.barOrange { background: linear-gradient(90deg, #FF9800, #FFB74D); }
-.barGreen  { background: linear-gradient(90deg, #2E7D32, #66BB6A); }
-.barRed    { background: linear-gradient(90deg, #D32F2F, #EF5350); }
+.barBlue   { background: linear-gradient(90deg, #2563eb, #60a5fa); }
+.barOrange { background: linear-gradient(90deg, #ea580c, #fb923c); }
+.barGreen  { background: linear-gradient(90deg, #16a34a, #4ade80); }
+.barRed    { background: linear-gradient(90deg, #dc2626, #f87171); }
 
 .dashboardCardTitle {
-    font-weight: 700;
-    font-size: 1rem;
-    color: #1d2d3e;
+    font-weight: 600 !important;
+    font-size: 0.9rem;
+    color: #1a1a2e;
 }
 
 .dashboardCardSubtitle {
-    color: #8b8f94;
-    font-size: 0.75rem;
-    margin-top: 2px;
-}
-
-.dashboardCardNumber {
-    font-size: 2.25rem;
-    font-weight: 700;
-    color: #1d2d3e;
-    line-height: 1.1;
-    padding-top: 4px;
+    font-size: 0.78rem;
+    color: #9aa0ac;
 }
 
 .dashboardCardIcon {
-    font-size: 1.35rem;
-    width: 2.5rem;
-    height: 2.5rem;
-    line-height: 2.5rem;
-    text-align: center;
-    border-radius: 50%;
-    flex-shrink: 0;
+    font-size: 1.4rem !important;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
 }
 
-.iconBlue   { background: #E8ECFF; color: #4C6FFF; }
-.iconOrange { background: #FFF3E0; color: #FF9800; }
-.iconGreen  { background: #E8F5E9; color: #2E7D32; }
-.iconRed    { background: #FFEBEE; color: #D32F2F; }
+.iconBlue   { background: #eaf1ff; color: #2563eb !important; }
+.iconOrange { background: #fff1e8; color: #ea580c !important; }
+.iconGreen  { background: #e9fbef; color: #16a34a !important; }
+.iconRed    { background: #fdeceb; color: #dc2626 !important; }
+
+.dashboardCardNumber {
+    font-size: 1.9rem !important;
+    font-weight: 700 !important;
+    color: #101828;
+    letter-spacing: -0.02em;
+}
 
 .trendUp {
-    color: #2E7D32;
-    font-size: 0.85rem;
-}
-
-.trendDown {
-    color: #D32F2F;
-    font-size: 0.85rem;
+    color: #16a34a !important;
+    font-size: 0.85rem !important;
 }
 
 .trendUpText {
-    color: #2E7D32;
-    font-weight: 600;
+    color: #16a34a;
     font-size: 0.78rem;
+    font-weight: 600;
 }
 
-.trendDownText {
-    color: #D32F2F;
-    font-weight: 600;
-    font-size: 0.78rem;
-}
-
-/* =========================================================
-   RECENT SALES / PROJECT OVERVIEW PANELS
-========================================================= */
+/* ===================== PANELS ===================== */
 
 .sapMPanel {
-    border-radius: 10px !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
-    border: none !important;
-    overflow: hidden;
-}
-
-.sapMPanel .sapMPanelHdr,
-.sapMPanel .sapMTB {
-    background-color: #ffffff !important;
-    border-bottom: 1px solid #eef0f2 !important;
-    padding: 0.75rem 1rem;
-}
-
-.sapMPanel .sapMTitle {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #1d2d3e;
-}
-
-/* Table header row (SALE NUMBER / CUSTOMER / etc.) */
-.sapMListTblHeader {
-    background-color: #fafbfc !important;
-}
-
-.sapMListTblHeader .sapMLabel,
-.sapMListTblHeader .sapMText {
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    color: #8b8f94;
-    text-transform: uppercase;
-}
-
-.sapMListTbl .sapMListTblRow:hover {
-    background-color: #fafbfc;
-}
-
-/* =========================================================
-   PROJECT OVERVIEW CHART GRID
-========================================================= */
-
-.dashboardOverviewGrid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-    width: 100%;
-}
-
-@media (max-width: 900px) {
-    .dashboardOverviewGrid {
-        grid-template-columns: 1fr;
-    }
+    border-radius: 16px !important;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
+    border: 1px solid #eef0f4 !important;
 }
 
 .overviewChartBox {
     background: #fafbfc;
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 1rem;
-    border: 1px solid #eef0f2;
+    flex: 1 1 30%;
+    min-width: 260px;
+    border: 1px solid #f0f1f3;
 }
 
-/* =========================================================
-   RESPONSIVE (legacy rules kept in case dashboardCard is
-   reused outside the grid elsewhere)
-========================================================= */
+/* ===================== AREAS TABLE (Inventory) ===================== */
 
-@media (max-width: 1024px) {
-    .dashboardCard {
-        width: 100%;
-    }
+#areasTable .sapMListTblRow:hover {
+    background-color: #f8faff;
+    cursor: pointer;
 }
