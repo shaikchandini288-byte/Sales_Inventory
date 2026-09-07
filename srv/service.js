@@ -1,4 +1,5 @@
 const cds = require("@sap/cds");
+const cron = require("node-cron");
 
 module.exports = cds.service.impl(async function () {
 
