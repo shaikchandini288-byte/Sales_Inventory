@@ -68,7 +68,10 @@ sap.ui.define([
                     completionRate: 0,
                     salesTrend: [],
                     categoryBreakdown: [],
-                    topProducts: []
+                    topProducts: [],
+                    pendingValue: 0,
+                    statusBreakdown: [],
+                    topCustomers: []
                 }
 
             });
@@ -145,6 +148,13 @@ sap.ui.define([
             this.oLocalModel.setProperty(
                 "/currentPage",
                 "sales"
+            );
+        },
+        onViewAllAnalytics: function () {
+
+            this.oLocalModel.setProperty(
+                "/currentPage",
+                "analytics"
             );
         },
 
@@ -1871,6 +1881,47 @@ sap.ui.define([
                         5
                     );
 
+                                // Pending value
+            const pendingValue =
+                aSales
+                    .filter(function (s) { return s.status === "Pending"; })
+                    .reduce(function (sum, s) {
+                        return sum + (Number(s.totalAmount) || 0);
+                    }, 0);
+
+
+            // Status breakdown
+            const oStatusMap = {};
+
+            aSales.forEach(function (s) {
+                const k = s.status || "Unknown";
+                oStatusMap[k] = (oStatusMap[k] || 0) + 1;
+            });
+
+            const statusBreakdown =
+                Object.keys(oStatusMap).map(function (k) {
+                    return { status: k, count: oStatusMap[k] };
+                });
+
+
+            // Top customers
+            const oCustMap = {};
+
+            aSales.forEach(function (s) {
+                const n = (s.customer && s.customer.customerName) || "Unknown";
+                oCustMap[n] = (oCustMap[n] || 0) + (Number(s.totalAmount) || 0);
+            });
+
+            const topCustomers =
+                Object.keys(oCustMap)
+                    .map(function (n) {
+                        return { title: n, value: Math.round(oCustMap[n]) };
+                    })
+                    .sort(function (a, b) { return b.value - a.value; })
+                    .slice(0, 5);
+
+
+
 
             this.oLocalModel.setProperty(
                 "/analytics",
@@ -1901,7 +1952,18 @@ sap.ui.define([
                         categoryBreakdown,
 
                     topProducts:
-                        topProducts
+                        topProducts,
+
+                    pendingValue:
+                        Math.round(
+                            pendingValue
+                        ),
+
+                    statusBreakdown:
+                        statusBreakdown,
+
+                    topCustomers:
+                        topCustomers    
                 }
             );
         },
@@ -1921,6 +1983,87 @@ sap.ui.define([
                     "Analytics refreshed successfully."
                 );
             },
+
+                    onApplyAnalyticsFilters: function () {
+
+            var oFrom = this.byId("analyticsDateFrom");
+            var oTo = this.byId("analyticsDateTo");
+            var oStatus = this.byId("analyticsStatusFilter");
+
+            var oFromDate = oFrom ? oFrom.getDateValue() : null;
+            var oToDate = oTo ? oTo.getDateValue() : null;
+            var sStatus = oStatus ? oStatus.getSelectedKey() : "";
+
+            var aAll = this.oLocalModel.getProperty("/allSales") ||
+                this.oLocalModel.getProperty("/sales") || [];
+
+            // Keep a pristine copy the first time we filter
+            if (!this.oLocalModel.getProperty("/allSales")) {
+                this.oLocalModel.setProperty("/allSales", aAll.slice());
+            }
+
+            var aFiltered = aAll.filter(function (s) {
+
+                if (sStatus && s.status !== sStatus) {
+                    return false;
+                }
+
+                if (oFromDate || oToDate) {
+
+                    var iTime = new Date(s.saleDate).getTime();
+
+                    if (isNaN(iTime)) {
+                        return false;
+                    }
+
+                    if (oFromDate && iTime < oFromDate.getTime()) {
+                        return false;
+                    }
+
+                    if (oToDate) {
+                        var iEnd = new Date(
+                            oToDate.getFullYear(),
+                            oToDate.getMonth(),
+                            oToDate.getDate(),
+                            23, 59, 59, 999
+                        ).getTime();
+
+                        if (iTime > iEnd) {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            });
+
+            this.oLocalModel.setProperty("/sales", aFiltered);
+            this._computeAnalytics();
+
+            MessageToast.show(aFiltered.length + " sale(s) match the filters.");
+        },
+
+
+        onClearAnalyticsFilters: function () {
+
+            var oFrom = this.byId("analyticsDateFrom");
+            var oTo = this.byId("analyticsDateTo");
+            var oStatus = this.byId("analyticsStatusFilter");
+
+            if (oFrom) { oFrom.setValue(""); }
+            if (oTo) { oTo.setValue(""); }
+            if (oStatus) { oStatus.setSelectedKey(""); }
+
+            var aAll = this.oLocalModel.getProperty("/allSales");
+
+            if (aAll) {
+                this.oLocalModel.setProperty("/sales", aAll.slice());
+            }
+
+            this._computeAnalytics();
+
+            MessageToast.show("Analytics filters cleared.");
+        },
 
 
         // =========================================================
@@ -2626,10 +2769,6 @@ sap.ui.define([
             MessageToast.show("Inventory filters cleared.");
         },
         // =========================================================
-        // SALES FILTERS (applied only on "Filter" button click)
-        // =========================================================
-
-                // =========================================================
         // SALES FILTERS (applied only on "Filter" button click)
         // =========================================================
 

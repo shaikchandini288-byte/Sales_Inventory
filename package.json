@@ -1,10 +1,6 @@
 {
   "name": "Sales-Inventory",
   "version": "1.0.0",
-  "description": "Sales and Inventory Management System",
-  "repository": "<Add your repository here>",
-  "license": "UNLICENSED",
-  "private": true,
   "dependencies": {
     "@cap-js/hana": "^2",
     "@sap/cds": "^9",

@@ -24,6 +24,79 @@ module.exports = cds.service.impl(async function () {
         Warehouses
     } = cds.entities("sales.inventory");
 
+    
+    // SCHEDULED JOB - CANCEL STALE PENDING SALES
+    
+            const LOG = (msg) =>
+        console.log(`[JOB ${new Date().toISOString()}] ${msg}`);
+
+
+    async function runCancelStaleSales() {
+
+        // HANA: pass a Date object, not an ISO string
+           const cutoff = new Date(
+            Date.now() - 7 * 24 * 60 * 60 * 1000
+        );
+
+        LOG(`cutoff = ${cutoff.toISOString()}`);
+
+        const allPending = await db.run(
+            SELECT.from(Sales)
+                .where({ status: "Pending" })
+        );
+
+        LOG(`pending sales found: ${allPending.length}`);
+
+        for (const p of allPending) {
+            LOG(`  ${p.saleNumber} saleDate=${p.saleDate}`);
+        }
+
+        const stale = await db.run(
+            SELECT.from(Sales)
+                .where({
+                    status: "Pending",
+                    saleDate: { "<": cutoff }
+                })
+        );
+
+        LOG(`stale matched: ${stale.length}`);
+
+        for (const s of stale) {
+
+            await db.run(
+                UPDATE(Sales)
+                    .set({ status: "Cancelled" })
+                    .where({ ID: s.ID })
+            );
+        }
+
+        LOG(`Auto-cancelled ${stale.length} stale pending sale(s)`);
+
+        return stale.length;
+    }
+
+
+    // -----------------------------------------------------
+    // Register cron only once.
+    // service.js implements BOTH MyService and MyService1,
+    // so this block would otherwise run twice.
+    // -----------------------------------------------------
+
+    if (this.name === "MyService") {
+
+        cron.schedule("0 3 * * *", runCancelStaleSales);
+
+        LOG("Scheduler registered (cancelStalePendingSales)");
+    }
+
+
+    // Manual / external trigger
+    this.on("cancelStalePendingSales", async () => {
+
+        const cancelled = await runCancelStaleSales();
+
+        return `Auto-cancelled ${cancelled} stale pending sale(s).`;
+    });
 
     // =====================================================
     // PRODUCT
@@ -1039,13 +1112,13 @@ module.exports = cds.service.impl(async function () {
                     );
 
 
-                if (
-                    !Number.isNaN(
-                        currentNumber
-                    ) &&
-                    currentNumber >
-                        highestSaleNumber
-                ) {
+            if (
+                !Number.isNaN(
+                    currentNumber
+                ) &&
+                currentNumber >
+                    highestSaleNumber
+            ) {
 
                     highestSaleNumber =
                         currentNumber;

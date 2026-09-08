@@ -34,7 +34,7 @@ service MyService {
     action getTotalSales()
         returns Decimal(15,2);
 
-    action runAllJobs() returns String;
+   action cancelStalePendingSales() returns String;
     
 
 }
