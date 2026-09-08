@@ -141,27 +141,6 @@
 }
 .overviewChartBox {
     background: #ffffff;
-    border: 1px solid #e7eaf0;
-    border-radius: 12px;
-    padding: 1.25rem;
-    box-sizing: border-box;
-    width: 100% !important;
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
-}
-
-/* ===================== OVERVIEW CHARTS ===================== */
-
-.dashboardOverviewGrid {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.25rem;
-    width: 100%;
-}
-@media (max-width: 1024px) {
-    .dashboardOverviewGrid { grid-template-columns: 1fr; }
-}
-.overviewChartBox {
-    background: #ffffff;
     border: 1px solid #eef0f4;
     border-radius: 16px;
     padding: 1.25rem;
@@ -178,13 +157,125 @@
     border: 1px solid #eef0f4 !important;
 }
 
-.overviewChartBox {
-    background: #fafbfc;
+/* ===================== ANALYTICS PAGE ===================== */
+
+.analyticsRoot { padding: 1.5rem; }
+
+.analyticsHeader { margin-bottom: 1.25rem; }
+
+.analyticsTitle {
+    font-weight: 700 !important;
+    color: #101828;
+}
+.analyticsSubtitle {
+    color: #667085;
+    font-size: 0.9rem;
+    margin-top: 0.2rem;
+}
+
+.analyticsFilterBar {
+    background: #f8fafc;
+    border: 1px solid #e7eaf0;
     border-radius: 12px;
-    padding: 1rem;
-    flex: 1 1 30%;
-    min-width: 260px;
-    border: 1px solid #f0f1f3;
+    padding: 0.85rem 1rem !important;
+    margin-bottom: 1.25rem;
+}
+
+.analyticsKpiGrid {
+    display: grid !important;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+    width: 100%;
+    margin-bottom: 1.25rem;
+}
+@media (max-width: 1200px) {
+    .analyticsKpiGrid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 700px) {
+    .analyticsKpiGrid { grid-template-columns: 1fr; }
+}
+
+.anaKpi {
+    background: #ffffff;
+    border: 1px solid #e7eaf0;
+    border-left-width: 4px;
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+}
+.anaKpiBlue   { border-left-color: #2563eb; }
+.anaKpiOrange { border-left-color: #ea580c; }
+.anaKpiGreen  { border-left-color: #16a34a; }
+.anaKpiPurple { border-left-color: #7c3aed; }
+.anaKpiTeal   { border-left-color: #0d9488; }
+
+.anaKpiLabel {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #475467;
+}
+.anaKpiValue {
+    font-size: 1.55rem !important;
+    font-weight: 700 !important;
+    color: #101828;
+    letter-spacing: -0.02em;
+    margin: 0.35rem 0 0.2rem 0;
+}
+.anaKpiSub {
+    font-size: 0.72rem;
+    color: #98a2b3;
+}
+.anaKpiBar { margin-top: 0.5rem; }
+
+.analyticsChartGrid {
+    display: grid !important;
+    gap: 1.25rem;
+    width: 100%;
+    margin-bottom: 1.25rem;
+    grid-template-columns: 2fr 1fr;
+}
+#_IDGenAnaCharts2.analyticsChartGrid {
+    grid-template-columns: repeat(3, 1fr);
+}
+@media (max-width: 1100px) {
+    .analyticsChartGrid,
+    #_IDGenAnaCharts2.analyticsChartGrid { grid-template-columns: 1fr; }
+}
+
+.anaChartBox {
+    background: #ffffff;
+    border: 1px solid #e7eaf0;
+    border-radius: 12px;
+    padding: 1.1rem;
+    box-sizing: border-box;
+    width: 100% !important;
+}
+.anaChartTitle {
+    font-weight: 600 !important;
+    color: #344054;
+    margin-bottom: 0.75rem;
+}
+
+.anaCatRow { padding: 0.5rem 0; }
+.anaCatName {
+    font-size: 0.85rem;
+    color: #344054;
+    font-weight: 500;
+}
+.anaCatPct {
+    font-size: 0.85rem;
+    color: #667085;
+    font-weight: 600;
+}
+.anaCatProgress { margin-top: 0.35rem; }
+
+.anaDetailPanel {
+    background: #ffffff;
+    border: 1px solid #e7eaf0;
+    border-radius: 12px;
+}
+.anaDetailCount {
+    font-size: 0.8rem;
+    color: #667085;
 }
 
 /* ===================== AREAS TABLE (Inventory) ===================== */

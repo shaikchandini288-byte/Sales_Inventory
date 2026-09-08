@@ -19,7 +19,18 @@ sap.ui.define([
 
 		var oDate = new Date(sDateTime);
 
-		return oDate.toLocaleString();
+		if (isNaN(oDate.getTime())) {
+			return String(sDateTime);
+		}
+
+		return oDate.toLocaleString("en-IN", {
+			day: "2-digit",
+			month: "short",
+			year: "numeric",
+			hour: "2-digit",
+			minute: "2-digit",
+			hour12: true
+		});
 	};
 
 	Formatter.formatDate = function (sDate) {
@@ -38,6 +49,19 @@ sap.ui.define([
 			month: "short",
 			day: "numeric",
 			year: "numeric"
+		});
+	};
+
+	Formatter.formatCurrency = function (fValue) {
+
+		var nValue = Number(fValue);
+
+		if (isNaN(nValue)) {
+			return "";
+		}
+
+		return "₹" + nValue.toLocaleString("en-IN", {
+			maximumFractionDigits: 0
 		});
 	};
 

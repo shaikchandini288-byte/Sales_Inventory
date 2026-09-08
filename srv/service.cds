@@ -19,6 +19,10 @@ service MyService {
         ID : UUID
     ) returns Decimal(15,2);
 
+    action submitSaleForApproval(
+        ID : UUID
+    ) returns Sales;
+
     action completeSale(
         ID : UUID
     ) returns Sales;
@@ -34,11 +38,24 @@ service MyService {
     
 
 }
+
 @path: 'inventory'
 service MyService1 {
     entity Inventory as projection on db.Inventory;
     entity Warehouses as projection on db.Warehouses;
-    action adjustStock(inventoryID:UUID,quantity:Integer) returns  String;
-    action reserveStock(inventoryID:UUID,quantity:Integer) returns  String;
-    action releaseStock(inventoryID:UUID,quantity:Integer) returns  String;
+
+    action adjustStock(
+        inventoryID:UUID,
+        quantity:Integer
+    ) returns String;
+
+    action reserveStock(
+        inventoryID:UUID,
+        quantity:Integer
+    ) returns String;
+
+    action releaseStock(
+        inventoryID:UUID,
+        quantity:Integer
+    ) returns String;
 }

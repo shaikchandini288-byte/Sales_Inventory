@@ -16,6 +16,7 @@ module.exports = cds.service.impl(async function () {
     
     // SCHEDULED JOB - CANCEL STALE PENDING SALES
     
+            const LOG = (msg) =>
         console.log(`[JOB ${new Date().toISOString()}] ${msg}`);
 
 
@@ -199,7 +200,195 @@ module.exports = cds.service.impl(async function () {
             product.stockQty || 0
         );
     });
+    // =====================================================
+// SUBMIT SALE FOR BPA APPROVAL
+// =====================================================
+//
+// Flow:
+//
+// UI5
+//   ↓
+// submitSaleForApproval()
+//   ↓
+// SAP Build Process Automation
+//   ↓
+// Level 1 Approval
+//   ↓
+// Level 2 Approval
+//   ↓
+// completeSale()
+//
+// No database/schema changes required.
+//
+// =====================================================
 
+this.on("submitSaleForApproval", async (req) => {
+
+    const { ID } = req.data;
+
+    // -------------------------------------------------
+    // Validation
+    // -------------------------------------------------
+
+    if (!ID) {
+        return req.error(
+            400,
+            "Sale ID is required"
+        );
+    }
+
+
+    // -------------------------------------------------
+    // Find Sale
+    // -------------------------------------------------
+
+    const sale = await db.run(
+        SELECT.one
+            .from(Sales)
+            .where({ ID })
+    );
+
+
+    if (!sale) {
+        return req.error(
+            404,
+            "Sale not found"
+        );
+    }
+
+
+    // -------------------------------------------------
+    // Validate Sale Status
+    // -------------------------------------------------
+
+    if (sale.status === "Completed") {
+
+        return req.error(
+            400,
+            "Completed sale cannot be submitted for approval"
+        );
+    }
+
+
+    if (sale.status === "Cancelled") {
+
+        return req.error(
+            400,
+            "Cancelled sale cannot be submitted for approval"
+        );
+    }
+
+
+    if (sale.status !== "Pending") {
+
+        return req.error(
+            400,
+            `Only Pending sales can be submitted for approval. Current status: ${sale.status}`
+        );
+    }
+
+
+    // -------------------------------------------------
+    // Validate Required Sale Data
+    // -------------------------------------------------
+
+    if (!sale.product_ID) {
+
+        return req.error(
+            400,
+            "Sale product is missing"
+        );
+    }
+
+
+    if (
+        sale.quantity === undefined ||
+        sale.quantity === null ||
+        Number(sale.quantity) <= 0
+    ) {
+
+        return req.error(
+            400,
+            "Sale quantity must be greater than zero"
+        );
+    }
+
+
+    // -------------------------------------------------
+    // Prepare BPA Context
+    // -------------------------------------------------
+
+    const bpaContext = {
+
+        saleID: ID,
+
+        saleNumber:
+            sale.saleNumber,
+
+        customerID:
+            sale.customer_ID,
+
+        productID:
+            sale.product_ID,
+
+        warehouseID:
+            sale.warehouse_ID || null,
+
+        quantity:
+            Number(sale.quantity || 0),
+
+        unitPrice:
+            Number(sale.unitPrice || 0),
+
+        totalAmount:
+            Number(sale.totalAmount || 0),
+
+        saleDate:
+            sale.saleDate,
+
+        remarks:
+            sale.remarks || null
+
+    };
+
+
+    // -------------------------------------------------
+    // TEMPORARY LOG
+    // -------------------------------------------------
+    //
+    // We will replace this section with the actual
+    // SAP Build Process Automation API call after
+    // configuring the BTP Destination.
+    //
+    // -------------------------------------------------
+
+    console.log(
+        "======================================"
+    );
+
+    console.log(
+        "BPA APPROVAL REQUEST"
+    );
+
+    console.log(
+        JSON.stringify(
+            bpaContext,
+            null,
+            2
+        )
+    );
+
+    console.log(
+        "======================================"
+    );
+
+
+    // -------------------------------------------------
+    // Return Sale
+    // -------------------------------------------------
+
+    return sale;
+});
 
 
     this.on("completeSale", async (req) => {
