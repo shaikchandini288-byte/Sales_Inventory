@@ -4,7 +4,8 @@
   "dependencies": {
     "@cap-js/hana": "^2.8.1",
     "@sap/cds": "^9",
-    "@sap/xssec": "^4"
+    "@sap/xssec": "^4",
+    "node-cron": "^4.6.0"
   },
   "devDependencies": {
     "@cap-js/sqlite": "^2.4",
