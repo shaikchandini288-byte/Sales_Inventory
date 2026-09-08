@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "dependencies": {
     "@cap-js/hana": "^2",
+    "@sap/approuter": "^23.0.0",
     "@sap/cds": "^9",
     "express": "^4",
     "node-cron": "^4"
