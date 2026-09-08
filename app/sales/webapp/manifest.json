@@ -10,13 +10,11 @@
     "title": "{{appTitle}}",
     "description": "{{appDescription}}",
     "resources": "resources.json",
-
     "sourceTemplate": {
       "id": "@sap/generator-fiori:basic",
       "version": "1.31.1",
       "toolsId": "28405002-aa30-43c8-8d60-a51ab06d7ab6"
     },
-
     "dataSources": {
       "mainService": {
         "uri": "/odata/v4/sales-inventory/",
@@ -26,7 +24,6 @@
           "odataVersion": "4.0"
         }
       },
-
       "inventoryService": {
         "uri": "/odata/v4/inventory/",
         "type": "OData",
@@ -36,7 +33,6 @@
         }
       }
     },
-
     "crossNavigation": {
       "inbounds": {
         "new-new": {
@@ -47,14 +43,30 @@
             "parameters": {},
             "additionalParameters": "allowed"
           }
+        },
+        "Inventory-DisplayAction": {
+          "semanticObject": "Inventory",
+          "action": "DisplayAction",
+          "title": "{{Inventory-DisplayAction.flpTitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        },
+        "Inventory-display": {
+          "semanticObject": "Inventory",
+          "action": "display",
+          "title": "{{Inventory-display.flpTitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
         }
       }
     }
   },
-
   "sap.ui": {
     "technology": "UI5",
-
     "icons": {
       "icon": "",
       "favIcon": "",
@@ -63,17 +75,14 @@
       "tablet": "",
       "tablet@2": ""
     },
-
     "deviceTypes": {
       "desktop": true,
       "tablet": true,
       "phone": true
     }
   },
-
   "sap.ui5": {
     "flexEnabled": true,
-
     "dependencies": {
       "minUI5Version": "1.151.0",
       "libs": {
@@ -82,12 +91,10 @@
         "sap.ui.table": {}
       }
     },
-
     "contentDensities": {
       "compact": true,
       "cozy": true
     },
-
     "models": {
       "i18n": {
         "type": "sap.ui.model.resource.ResourceModel",
@@ -95,7 +102,6 @@
           "bundleName": "sales.i18n.i18n"
         }
       },
-
       "": {
         "dataSource": "mainService",
         "preload": true,
@@ -105,7 +111,6 @@
           "earlyRequests": true
         }
       },
-
       "inventory": {
         "dataSource": "inventoryService",
         "preload": true,
@@ -116,7 +121,6 @@
         }
       }
     },
-
     "resources": {
       "css": [
         {
@@ -124,7 +128,6 @@
         }
       ]
     },
-
     "routing": {
       "config": {
         "routerClass": "sap.m.routing.Router",
@@ -137,7 +140,6 @@
         "async": true,
         "viewPath": "sales.view"
       },
-
       "routes": [
         {
           "name": "RouteView1",
@@ -147,7 +149,6 @@
           ]
         }
       ],
-
       "targets": {
         "TargetView1": {
           "id": "View1",
@@ -155,12 +156,15 @@
         }
       }
     },
-
     "rootView": {
       "viewName": "sales.view.App",
       "type": "XML",
       "id": "App",
       "async": true
     }
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "SalesInventory.service"
   }
 }

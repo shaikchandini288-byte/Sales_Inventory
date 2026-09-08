@@ -1,0 +1,195 @@
+/* ===================== DASHBOARD HERO ===================== */
+
+.dashboardHero {
+    background: linear-gradient(120deg, #1e3a8a 0%, #2563eb 55%, #3b82f6 100%);
+    border-radius: 16px;
+    padding: 1.75rem 2rem !important;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.25);
+}
+.dashboardHeroTitle {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 1.6rem !important;
+}
+.dashboardHeroSubtitle {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-size: 0.95rem;
+}
+.dashboardHeroButton .sapMBtnInner {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+}
+.dashboardHeroButton .sapMBtnInner,
+.dashboardHeroButton .sapMBtnContent,
+.dashboardHeroButton .sapUiIcon {
+    color: #ffffff !important;
+}
+.dashboardHeroButton .sapMBtnInner:hover {
+    background: rgba(255, 255, 255, 0.28) !important;
+}
+
+/* ===================== KPI CARDS ===================== */
+
+.dashboardKpiGrid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    width: 100%;
+}
+@media (max-width: 1024px) {
+    .dashboardKpiGrid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+    .dashboardKpiGrid { grid-template-columns: 1fr; }
+}
+
+.kpiCard {
+    background: #ffffff;
+    border: 1px solid #e7eaf0;
+    border-radius: 12px;
+    padding: 1.25rem 1.35rem 1.1rem 1.35rem;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.kpiCard:hover {
+    box-shadow: 0 6px 18px rgba(16, 24, 40, 0.08);
+    border-color: #d7dce6;
+}
+
+.kpiCard::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+}
+.kpiAccentBlue::before   { background: #2563eb; }
+.kpiAccentOrange::before { background: #ea580c; }
+.kpiAccentGreen::before  { background: #16a34a; }
+.kpiAccentRed::before    { background: #dc2626; }
+
+.kpiCardHead { margin-bottom: 0.9rem; }
+
+.kpiLabel {
+    font-weight: 600 !important;
+    font-size: 0.82rem;
+    letter-spacing: 0.01em;
+    color: #475467;
+}
+.kpiSubLabel {
+    font-size: 0.72rem;
+    color: #98a2b3;
+    margin-top: 0.1rem;
+}
+
+.kpiIcon {
+    font-size: 1.2rem !important;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.iconBlue   { background: #eef4ff; color: #2563eb !important; }
+.iconOrange { background: #fff3ec; color: #ea580c !important; }
+.iconGreen  { background: #ecfdf3; color: #16a34a !important; }
+.iconRed    { background: #fef3f2; color: #dc2626 !important; }
+
+.kpiValue {
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    color: #101828;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.kpiTrend {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.9rem;
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    width: fit-content;
+}
+.trendPosBg     { background: #ecfdf3; }
+.trendNegBg     { background: #fef3f2; }
+.trendNeutralBg { background: #f2f4f7; }
+
+.trendPos, .trendPosText         { color: #067647 !important; }
+.trendNeg, .trendNegText         { color: #b42318 !important; }
+.trendNeutral, .trendNeutralText { color: #667085 !important; }
+
+.trendPos, .trendNeg, .trendNeutral { font-size: 0.8rem !important; }
+.trendPosText, .trendNegText, .trendNeutralText {
+    font-size: 0.74rem;
+    font-weight: 600;
+}
+
+/* ===================== OVERVIEW CHARTS ===================== */
+
+.dashboardOverviewGrid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    width: 100%;
+}
+@media (max-width: 1024px) {
+    .dashboardOverviewGrid { grid-template-columns: 1fr; }
+}
+.overviewChartBox {
+    background: #ffffff;
+    border: 1px solid #e7eaf0;
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-sizing: border-box;
+    width: 100% !important;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+/* ===================== OVERVIEW CHARTS ===================== */
+
+.dashboardOverviewGrid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    width: 100%;
+}
+@media (max-width: 1024px) {
+    .dashboardOverviewGrid { grid-template-columns: 1fr; }
+}
+.overviewChartBox {
+    background: #ffffff;
+    border: 1px solid #eef0f4;
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-sizing: border-box;
+    width: 100% !important;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+/* ===================== PANELS ===================== */
+
+.sapMPanel {
+    border-radius: 16px !important;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
+    border: 1px solid #eef0f4 !important;
+}
+
+.overviewChartBox {
+    background: #fafbfc;
+    border-radius: 12px;
+    padding: 1rem;
+    flex: 1 1 30%;
+    min-width: 260px;
+    border: 1px solid #f0f1f3;
+}
+
+/* ===================== AREAS TABLE (Inventory) ===================== */
+
+#areasTable .sapMListTblRow:hover {
+    background-color: #f8faff;
+    cursor: pointer;
+}

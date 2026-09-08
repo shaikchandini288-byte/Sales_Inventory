@@ -3,7 +3,18 @@ const cron = require("node-cron");
 
 module.exports = cds.service.impl(async function () {
 
+    // =====================================================
+    // DATABASE CONNECTION
+    // =====================================================
+
     const db = await cds.connect.to("db");
+
+    // =====================================================
+    // BPA CONNECTION
+    // =====================================================
+
+    const bpa = await cds.connect.to("bpaIntegration");
+
 
     const {
         Products,
@@ -127,196 +138,300 @@ module.exports = cds.service.impl(async function () {
             product.stockQty || 0
         );
     });
+
+
     // =====================================================
-// SUBMIT SALE FOR BPA APPROVAL
-// =====================================================
-//
-// Flow:
-//
-// UI5
-//   ↓
-// submitSaleForApproval()
-//   ↓
-// SAP Build Process Automation
-//   ↓
-// Level 1 Approval
-//   ↓
-// Level 2 Approval
-//   ↓
-// completeSale()
-//
-// No database/schema changes required.
-//
-// =====================================================
-
-this.on("submitSaleForApproval", async (req) => {
-
-    const { ID } = req.data;
-
-    // -------------------------------------------------
-    // Validation
-    // -------------------------------------------------
-
-    if (!ID) {
-        return req.error(
-            400,
-            "Sale ID is required"
-        );
-    }
-
-
-    // -------------------------------------------------
-    // Find Sale
-    // -------------------------------------------------
-
-    const sale = await db.run(
-        SELECT.one
-            .from(Sales)
-            .where({ ID })
-    );
-
-
-    if (!sale) {
-        return req.error(
-            404,
-            "Sale not found"
-        );
-    }
-
-
-    // -------------------------------------------------
-    // Validate Sale Status
-    // -------------------------------------------------
-
-    if (sale.status === "Completed") {
-
-        return req.error(
-            400,
-            "Completed sale cannot be submitted for approval"
-        );
-    }
-
-
-    if (sale.status === "Cancelled") {
-
-        return req.error(
-            400,
-            "Cancelled sale cannot be submitted for approval"
-        );
-    }
-
-
-    if (sale.status !== "Pending") {
-
-        return req.error(
-            400,
-            `Only Pending sales can be submitted for approval. Current status: ${sale.status}`
-        );
-    }
-
-
-    // -------------------------------------------------
-    // Validate Required Sale Data
-    // -------------------------------------------------
-
-    if (!sale.product_ID) {
-
-        return req.error(
-            400,
-            "Sale product is missing"
-        );
-    }
-
-
-    if (
-        sale.quantity === undefined ||
-        sale.quantity === null ||
-        Number(sale.quantity) <= 0
-    ) {
-
-        return req.error(
-            400,
-            "Sale quantity must be greater than zero"
-        );
-    }
-
-
-    // -------------------------------------------------
-    // Prepare BPA Context
-    // -------------------------------------------------
-
-    const bpaContext = {
-
-        saleID: ID,
-
-        saleNumber:
-            sale.saleNumber,
-
-        customerID:
-            sale.customer_ID,
-
-        productID:
-            sale.product_ID,
-
-        warehouseID:
-            sale.warehouse_ID || null,
-
-        quantity:
-            Number(sale.quantity || 0),
-
-        unitPrice:
-            Number(sale.unitPrice || 0),
-
-        totalAmount:
-            Number(sale.totalAmount || 0),
-
-        saleDate:
-            sale.saleDate,
-
-        remarks:
-            sale.remarks || null
-
-    };
-
-
-    // -------------------------------------------------
-    // TEMPORARY LOG
-    // -------------------------------------------------
+    // SUBMIT SALE FOR BPA APPROVAL
+    // =====================================================
     //
-    // We will replace this section with the actual
-    // SAP Build Process Automation API call after
-    // configuring the BTP Destination.
+    // UI5
+    //   ↓
+    // submitSaleForApproval()
+    //   ↓
+    // SAP Build Process Automation
+    //   ↓
+    // Level 1 - Sales Manager
+    //   ↓
+    // Level 2 - Finance Manager
+    //   ↓
+    // completeSale()
     //
-    // -------------------------------------------------
+    // =====================================================
 
-    console.log(
-        "======================================"
-    );
+    this.on("submitSaleForApproval", async (req) => {
 
-    console.log(
-        "BPA APPROVAL REQUEST"
-    );
+        const { ID } = req.data;
 
-    console.log(
-        JSON.stringify(
-            bpaContext,
-            null,
-            2
-        )
-    );
+        // -------------------------------------------------
+        // Validation
+        // -------------------------------------------------
 
-    console.log(
-        "======================================"
-    );
+        if (!ID) {
+            return req.error(
+                400,
+                "Sale ID is required"
+            );
+        }
 
 
-    // -------------------------------------------------
-    // Return Sale
-    // -------------------------------------------------
+        // -------------------------------------------------
+        // Find Sale
+        // -------------------------------------------------
 
-    return sale;
-});
+        const sale = await db.run(
+            SELECT.one
+                .from(Sales)
+                .where({ ID })
+        );
 
+
+        if (!sale) {
+            return req.error(
+                404,
+                "Sale not found"
+            );
+        }
+
+
+        // -------------------------------------------------
+        // Validate Sale Status
+        // -------------------------------------------------
+
+        if (sale.status === "Completed") {
+
+            return req.error(
+                400,
+                "Completed sale cannot be submitted for approval"
+            );
+        }
+
+
+        if (sale.status === "Cancelled") {
+
+            return req.error(
+                400,
+                "Cancelled sale cannot be submitted for approval"
+            );
+        }
+
+
+        if (sale.status !== "Pending") {
+
+            return req.error(
+                400,
+                `Only Pending sales can be submitted for approval. Current status: ${sale.status}`
+            );
+        }
+
+
+        // -------------------------------------------------
+        // Validate Required Sale Data
+        // -------------------------------------------------
+
+        if (!sale.product_ID) {
+
+            return req.error(
+                400,
+                "Sale product is missing"
+            );
+        }
+
+
+        if (
+            sale.quantity === undefined ||
+            sale.quantity === null ||
+            Number(sale.quantity) <= 0
+        ) {
+
+            return req.error(
+                400,
+                "Sale quantity must be greater than zero"
+            );
+        }
+
+
+        // -------------------------------------------------
+        // Prepare BPA Context
+        // -------------------------------------------------
+        //
+        // Sales entity does not contain warehouse_ID.
+        // Therefore warehouseID is sent as null.
+        //
+        // No DB schema change required.
+        //
+        // -------------------------------------------------
+
+       const bpaContext = {
+    saleID: sale.ID,
+    saleNumber: sale.saleNumber,
+    customerID: sale.customer_ID,
+    productID: sale.product_ID,
+    quantity: Number(sale.quantity),
+    unitPrice: Number(sale.unitPrice),
+    totalAmount: Number(sale.totalAmount),
+    saleDate: sale.saleDate,
+    remarks: sale.remarks || ""
+};
+
+
+        // =================================================
+        // START SAP BUILD PROCESS AUTOMATION
+        // =================================================
+
+        try {
+
+            console.log(
+                "======================================"
+            );
+
+            console.log(
+                "Starting SAP Build Process Automation"
+            );
+
+            console.log(
+                JSON.stringify(
+                    bpaContext,
+                    null,
+                    2
+                )
+            );
+
+
+            // -------------------------------------------------
+            // BPA Process Definition
+            // -------------------------------------------------
+
+            const definitionId =
+                "us10.ab72b89ctrial.salesorderapprovalprocess.twoLevelOrderApprovalProcess";
+
+
+            // -------------------------------------------------
+            // Workflow Payload
+            // -------------------------------------------------
+
+            const payload = {
+
+                definitionId:
+                    definitionId,
+
+                context: {
+
+                    sales:
+                        bpaContext
+
+                }
+
+            };
+
+
+            console.log(
+                "BPA REQUEST PAYLOAD:"
+            );
+
+            console.log(
+                JSON.stringify(
+                    payload,
+                    null,
+                    2
+                )
+            );
+
+
+            // -------------------------------------------------
+            // Call BPA REST API
+            // -------------------------------------------------
+
+            const response =
+                await bpa.send({
+
+                    method:
+                        "POST",
+
+                    path:
+                        "/workflow/rest/v1/workflow-instances",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json",
+
+                        "Accept":
+                            "application/json"
+
+                    },
+
+                    data:
+                        payload
+
+                });
+
+
+            // -------------------------------------------------
+            // BPA Response
+            // -------------------------------------------------
+
+            console.log(
+                "BPA RESPONSE:"
+            );
+
+            console.log(
+                JSON.stringify(
+                    response,
+                    null,
+                    2
+                )
+            );
+
+            console.log(
+                "BPA workflow started successfully."
+            );
+
+            console.log(
+                "======================================"
+            );
+
+
+            // -------------------------------------------------
+            // Return Sale
+            // -------------------------------------------------
+
+            return sale;
+
+        } catch (error) {
+
+            console.error(
+                "======================================"
+            );
+
+            console.error(
+                "BPA WORKFLOW ERROR"
+            );
+
+            console.error(
+                error
+            );
+
+            console.error(
+                "======================================"
+            );
+
+
+            return req.error(
+                502,
+                "Failed to start SAP Build Process Automation workflow: " +
+                (
+                    error.message ||
+                    "Unknown BPA error"
+                )
+            );
+        }
+
+    });
+
+
+    // =====================================================
+    // COMPLETE SALE
+    // =====================================================
 
     this.on("completeSale", async (req) => {
 
@@ -329,11 +444,17 @@ this.on("submitSaleForApproval", async (req) => {
             );
         }
 
+
+        // -------------------------------------------------
+        // Find Sale
+        // -------------------------------------------------
+
         const sale = await db.run(
             SELECT.one
                 .from(Sales)
                 .where({ ID })
         );
+
 
         if (!sale) {
             return req.error(
@@ -342,6 +463,10 @@ this.on("submitSaleForApproval", async (req) => {
             );
         }
 
+
+        // -------------------------------------------------
+        // Status Validation
+        // -------------------------------------------------
 
         if (sale.status === "Cancelled") {
 
@@ -369,11 +494,13 @@ this.on("submitSaleForApproval", async (req) => {
             );
         }
 
+
+        // -------------------------------------------------
+        // Sale Data
+        // -------------------------------------------------
+
         const productID =
             sale.product_ID;
-
-        const warehouseID =
-            sale.warehouse_ID;
 
         const quantity =
             Number(
@@ -399,25 +526,18 @@ this.on("submitSaleForApproval", async (req) => {
         }
 
 
-        let inventory;
+        // -------------------------------------------------
+        // Find Inventory
+        // -------------------------------------------------
+        //
+        // Sales has no warehouse_ID.
+        //
+        // Therefore inventory is selected by product.
+        //
+        // -------------------------------------------------
 
-        if (warehouseID) {
-
-            inventory = await db.run(
-                SELECT.one
-                    .from(Inventory)
-                    .where({
-                        product_ID:
-                            productID,
-
-                        warehouse_ID:
-                            warehouseID
-                    })
-            );
-
-        } else {
-
-            inventory = await db.run(
+        const inventory =
+            await db.run(
                 SELECT.one
                     .from(Inventory)
                     .where({
@@ -425,25 +545,14 @@ this.on("submitSaleForApproval", async (req) => {
                             productID
                     })
             );
-        }
 
 
         if (!inventory) {
 
-            if (warehouseID) {
-
-                return req.error(
-                    404,
-                    "Inventory record not found for this product and warehouse"
-                );
-
-            } else {
-
-                return req.error(
-                    404,
-                    "Inventory record not found for this product"
-                );
-            }
+            return req.error(
+                404,
+                "Inventory record not found for this product"
+            );
         }
 
 
@@ -498,7 +607,7 @@ this.on("submitSaleForApproval", async (req) => {
 
 
         // -------------------------------------------------
-        // Update Inventory Stock
+        // Update Inventory
         // -------------------------------------------------
 
         await db.run(
@@ -600,18 +709,22 @@ this.on("submitSaleForApproval", async (req) => {
             );
         }
 
+
         const sale = await db.run(
             SELECT.one
                 .from(Sales)
                 .where({ ID })
         );
 
+
         if (!sale) {
+
             return req.error(
                 404,
                 "Sale not found"
             );
         }
+
 
         if (sale.status === "Completed") {
 
@@ -621,6 +734,7 @@ this.on("submitSaleForApproval", async (req) => {
             );
         }
 
+
         if (sale.status === "Cancelled") {
 
             return req.error(
@@ -628,6 +742,7 @@ this.on("submitSaleForApproval", async (req) => {
                 "Sale is already Cancelled"
             );
         }
+
 
         await db.run(
             UPDATE(Sales)
@@ -639,6 +754,7 @@ this.on("submitSaleForApproval", async (req) => {
                     ID
                 })
         );
+
 
         return await db.run(
             SELECT.one
@@ -656,19 +772,21 @@ this.on("submitSaleForApproval", async (req) => {
 
     this.on("getTotalSales", async () => {
 
-        const result = await db.run(
-            SELECT.one
-                .from(Sales)
-                .columns(
-                    "sum(totalAmount) as totalSales"
-                )
-                .where({
-                    status: {
-                        "!=":
-                            "Cancelled"
-                    }
-                })
-        );
+        const result =
+            await db.run(
+                SELECT.one
+                    .from(Sales)
+                    .columns(
+                        "sum(totalAmount) as totalSales"
+                    )
+                    .where({
+                        status: {
+                            "!=":
+                                "Cancelled"
+                        }
+                    })
+            );
+
 
         return result?.totalSales || 0;
     });
@@ -677,365 +795,330 @@ this.on("submitSaleForApproval", async (req) => {
     // =====================================================
     // BEFORE CREATE SALE
     // =====================================================
-    //
-    // Customer     -> Required
-    // Product      -> Required
-    // Quantity     -> Required
-    // Warehouse    -> OPTIONAL
-    //
-    // Sale Number  -> Automatic
-    // Status       -> Pending
-    //
-    // Inventory is NOT decreased here.
-    //
-    // =====================================================
 
-    this.before("CREATE", "Sales", async (req) => {
+    this.before(
+        "CREATE",
+        "Sales",
+        async (req) => {
 
-        const data = req.data;
+            const data =
+                req.data;
 
 
-        // -------------------------------------------------
-        // Customer Validation
-        // -------------------------------------------------
+            // -------------------------------------------------
+            // Customer Validation
+            // -------------------------------------------------
 
-        if (!data.customer_ID) {
+            if (!data.customer_ID) {
 
-            return req.error(
-                400,
-                "Customer is required"
-            );
-        }
-
-
-        // -------------------------------------------------
-        // Product Validation
-        // -------------------------------------------------
-
-        if (!data.product_ID) {
-
-            return req.error(
-                400,
-                "Product is required"
-            );
-        }
+                return req.error(
+                    400,
+                    "Customer is required"
+                );
+            }
 
 
-        // -------------------------------------------------
-        // Quantity Validation
-        // -------------------------------------------------
+            // -------------------------------------------------
+            // Product Validation
+            // -------------------------------------------------
 
-        if (
-            data.quantity === undefined ||
-            data.quantity === null ||
-            Number(data.quantity) <= 0
-        ) {
+            if (!data.product_ID) {
 
-            return req.error(
-                400,
-                "Quantity must be greater than zero"
-            );
-        }
+                return req.error(
+                    400,
+                    "Product is required"
+                );
+            }
 
 
-        // -------------------------------------------------
-        // Check Customer
-        // -------------------------------------------------
+            // -------------------------------------------------
+            // Quantity Validation
+            // -------------------------------------------------
 
-        const customer =
-            await db.run(
-                SELECT.one
-                    .from(Customers)
-                    .where({
-                        ID:
-                            data.customer_ID
-                    })
-            );
+            if (
+                data.quantity === undefined ||
+                data.quantity === null ||
+                Number(data.quantity) <= 0
+            ) {
 
-
-        if (!customer) {
-
-            return req.error(
-                404,
-                "Customer not found"
-            );
-        }
+                return req.error(
+                    400,
+                    "Quantity must be greater than zero"
+                );
+            }
 
 
-        // -------------------------------------------------
-        // Check Product
-        // -------------------------------------------------
+            // -------------------------------------------------
+            // Check Customer
+            // -------------------------------------------------
 
-        const product =
-            await db.run(
-                SELECT.one
-                    .from(Products)
-                    .where({
-                        ID:
-                            data.product_ID
-                    })
-            );
-
-
-        if (!product) {
-
-            return req.error(
-                404,
-                "Product not found"
-            );
-        }
+            const customer =
+                await db.run(
+                    SELECT.one
+                        .from(Customers)
+                        .where({
+                            ID:
+                                data.customer_ID
+                        })
+                );
 
 
-        // -------------------------------------------------
-        // Find Inventory
-        // -------------------------------------------------
-        //
-        // Warehouse is optional.
-        //
-        // If warehouse is provided:
-        //     Product + Warehouse
-        //
-        // If warehouse is NOT provided:
-        //     Product only
-        //
-        // -------------------------------------------------
+            if (!customer) {
 
-        let inventory;
-
-        if (data.warehouse_ID) {
-
-            inventory = await db.run(
-                SELECT.one
-                    .from(Inventory)
-                    .where({
-                        product_ID:
-                            data.product_ID,
-
-                        warehouse_ID:
-                            data.warehouse_ID
-                    })
-            );
-
-        } else {
-
-            inventory = await db.run(
-                SELECT.one
-                    .from(Inventory)
-                    .where({
-                        product_ID:
-                            data.product_ID
-                    })
-            );
-        }
+                return req.error(
+                    404,
+                    "Customer not found"
+                );
+            }
 
 
-        if (!inventory) {
+            // -------------------------------------------------
+            // Check Product
+            // -------------------------------------------------
+
+            const product =
+                await db.run(
+                    SELECT.one
+                        .from(Products)
+                        .where({
+                            ID:
+                                data.product_ID
+                        })
+                );
+
+
+            if (!product) {
+
+                return req.error(
+                    404,
+                    "Product not found"
+                );
+            }
+
+
+            // -------------------------------------------------
+            // Find Inventory
+            // -------------------------------------------------
+
+            let inventory;
+
 
             if (data.warehouse_ID) {
 
-                return req.error(
-                    404,
-                    "Inventory record not found for the selected product and warehouse"
-                );
+                inventory =
+                    await db.run(
+                        SELECT.one
+                            .from(Inventory)
+                            .where({
+                                product_ID:
+                                    data.product_ID,
+
+                                warehouse_ID:
+                                    data.warehouse_ID
+                            })
+                    );
 
             } else {
 
-                return req.error(
-                    404,
-                    "Inventory record not found for the selected product"
-                );
+                inventory =
+                    await db.run(
+                        SELECT.one
+                            .from(Inventory)
+                            .where({
+                                product_ID:
+                                    data.product_ID
+                            })
+                    );
             }
-        }
 
 
-        // -------------------------------------------------
-        // Check Available Inventory Stock
-        // -------------------------------------------------
+            if (!inventory) {
 
-        const quantity =
-            Number(
-                data.quantity
-            );
+                if (data.warehouse_ID) {
 
-        const inventoryStock =
-            Number(
-                inventory.stockQty || 0
-            );
+                    return req.error(
+                        404,
+                        "Inventory record not found for the selected product and warehouse"
+                    );
 
-        const reservedQty =
-            Number(
-                inventory.reservedQty || 0
-            );
+                } else {
 
-        const availableStock =
-            inventoryStock -
-            reservedQty;
+                    return req.error(
+                        404,
+                        "Inventory record not found for the selected product"
+                    );
+                }
+            }
 
 
-        if (quantity > availableStock) {
+            // -------------------------------------------------
+            // Check Available Stock
+            // -------------------------------------------------
 
-            return req.error(
-                400,
-                `Insufficient stock. Available stock: ${availableStock}`
-            );
-        }
+            const quantity =
+                Number(
+                    data.quantity
+                );
 
+            const inventoryStock =
+                Number(
+                    inventory.stockQty || 0
+                );
 
-        // =================================================
-        // AUTOMATIC SALE NUMBER
-        // =================================================
-        //
-        // The frontend does NOT generate this number.
-        //
-        // Existing:
-        //
-        // SO00001
-        // SO00002
-        // SO00003
-        //
-        // Highest = 3
-        //
-        // New = SO00004
-        //
-        // =================================================
+            const reservedQty =
+                Number(
+                    inventory.reservedQty || 0
+                );
 
-        const allSales =
-            await db.run(
-                SELECT
-                    .from(Sales)
-                    .columns(
-                        "saleNumber"
-                    )
-            );
+            const availableStock =
+                inventoryStock -
+                reservedQty;
 
-
-        let highestSaleNumber = 0;
-
-
-        for (
-            const existingSale
-            of allSales
-        ) {
 
             if (
-                !existingSale.saleNumber
+                quantity >
+                availableStock
             ) {
-                continue;
+
+                return req.error(
+                    400,
+                    `Insufficient stock. Available stock: ${availableStock}`
+                );
             }
 
 
-            const match =
-                String(
-                    existingSale.saleNumber
-                )
-                    .trim()
-                    .match(
-                        /^SO(\d+)$/i
+            // =================================================
+            // AUTOMATIC SALE NUMBER
+            // =================================================
+
+            const allSales =
+                await db.run(
+                    SELECT
+                        .from(Sales)
+                        .columns(
+                            "saleNumber"
+                        )
+                );
+
+
+            let highestSaleNumber =
+                0;
+
+
+            for (
+                const existingSale
+                of allSales
+            ) {
+
+                if (
+                    !existingSale.saleNumber
+                ) {
+                    continue;
+                }
+
+
+                const match =
+                    String(
+                        existingSale.saleNumber
+                    )
+                        .trim()
+                        .match(
+                            /^SO(\d+)$/i
+                        );
+
+
+                if (!match) {
+                    continue;
+                }
+
+
+                const currentNumber =
+                    parseInt(
+                        match[1],
+                        10
                     );
 
 
-            if (!match) {
-                continue;
+                if (
+                    !Number.isNaN(
+                        currentNumber
+                    ) &&
+                    currentNumber >
+                        highestSaleNumber
+                ) {
+
+                    highestSaleNumber =
+                        currentNumber;
+                }
             }
 
 
-            const currentNumber =
-                parseInt(
-                    match[1],
-                    10
+            // -------------------------------------------------
+            // Generate Next Sale Number
+            // -------------------------------------------------
+
+            const nextSaleNumber =
+                highestSaleNumber + 1;
+
+
+            data.saleNumber =
+                "SO" +
+                String(
+                    nextSaleNumber
+                ).padStart(
+                    5,
+                    "0"
                 );
 
 
-            if (
-                !Number.isNaN(
-                    currentNumber
-                ) &&
-                currentNumber >
-                    highestSaleNumber
-            ) {
+            // -------------------------------------------------
+            // Unit Price
+            // -------------------------------------------------
 
-                highestSaleNumber =
-                    currentNumber;
+            const unitPrice =
+                Number(
+                    product.unitPrice || 0
+                );
+
+
+            data.unitPrice =
+                unitPrice;
+
+
+            // -------------------------------------------------
+            // Total Amount
+            // -------------------------------------------------
+
+            data.totalAmount =
+                quantity *
+                unitPrice;
+
+
+            // -------------------------------------------------
+            // Sale Date
+            // -------------------------------------------------
+
+            if (!data.saleDate) {
+
+                data.saleDate =
+                    new Date()
+                        .toISOString()
+                        .split("T")[0];
             }
+
+
+            // -------------------------------------------------
+            // Initial Status
+            // -------------------------------------------------
+
+            data.status =
+                "Pending";
         }
-
-
-        // -------------------------------------------------
-        // Generate Next Sale Number
-        // -------------------------------------------------
-
-        const nextSaleNumber =
-            highestSaleNumber + 1;
-
-
-        data.saleNumber =
-            "SO" +
-            String(
-                nextSaleNumber
-            ).padStart(
-                5,
-                "0"
-            );
-
-
-        // -------------------------------------------------
-        // Unit Price
-        // -------------------------------------------------
-
-        const unitPrice =
-            Number(
-                product.unitPrice || 0
-            );
-
-
-        data.unitPrice =
-            unitPrice;
-
-
-        // -------------------------------------------------
-        // Total Amount
-        // -------------------------------------------------
-
-        data.totalAmount =
-            quantity *
-            unitPrice;
-
-
-        // -------------------------------------------------
-        // Sale Date
-        // -------------------------------------------------
-
-        if (!data.saleDate) {
-
-            data.saleDate =
-                new Date().toISOString();
-        }
-
-
-        // -------------------------------------------------
-        // Initial Status
-        // -------------------------------------------------
-
-        data.status =
-            "Pending";
-    });
+    );
 
 
     // =====================================================
     // AFTER CREATE SALE
-    // =====================================================
-    //
-    // No inventory update here.
-    //
-    // CREATE:
-    // Inventory = 150
-    // Sale      = 5
-    // Status    = Pending
-    //
-    // COMPLETE:
-    // Inventory = 145
-    // Sale      = Completed
-    //
     // =====================================================
 
     this.after(
@@ -1043,10 +1126,16 @@ this.on("submitSaleForApproval", async (req) => {
         "Sales",
         async (sale, req) => {
 
-            // Intentionally empty.
-
-            // Inventory stock is changed
-            // only inside completeSale().
+            // Inventory is intentionally NOT changed here.
+            //
+            // Inventory is reduced only after:
+            //
+            // Level 1 Approval
+            //        +
+            // Level 2 Approval
+            //
+            // completeSale()
+            //
 
             return;
         }
@@ -1471,5 +1560,25 @@ this.on("submitSaleForApproval", async (req) => {
         );
     });
 
-});
 
+    // =====================================================
+    // CRON JOBS
+    // =====================================================
+    //
+    // Existing cron dependency is retained.
+    // Put scheduled background jobs here if required.
+    //
+    // =====================================================
+
+    cron.schedule(
+        "0 0 * * *",
+        async () => {
+
+            console.log(
+                "Daily Sales & Inventory job executed."
+            );
+
+        }
+    );
+
+});

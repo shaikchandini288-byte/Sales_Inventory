@@ -1,32 +1,34 @@
 {
   "name": "Sales-Inventory",
   "version": "1.0.0",
-
+  "description": "Sales and Inventory Management System",
+  "repository": "<Add your repository here>",
+  "license": "UNLICENSED",
+  "private": true,
   "dependencies": {
-    "@cap-js/hana": "^2.8.1",
-    "@sap-cloud-sdk/http-client": "^4.9.1",
+    "@cap-js/hana": "^2",
     "@sap/cds": "^9",
-    "@sap/xssec": "^4",
-    "node-cron": "^4.6.0"
+    "express": "^4",
+    "node-cron": "^4"
   },
   "devDependencies": {
-    "@cap-js/sqlite": "^2.4",
-    "@sap/cds-dk": "^9",
-    "cds-plugin-ui5": "^0.17.0"
+    "@cap-js/sqlite": "^2",
+    "@sap/cds-dk": "^9"
   },
   "scripts": {
-    "start": "cds-serve",
-    "watch-sales": "cds watch --open sales/index.html?sap-ui-xx-viewCache=false --livereload false"
+    "start": "cds-serve"
   },
-  "private": true,
-  "workspaces": [
-    "app/*"
-  ],
   "cds": {
     "server": {
       "index": true
     },
     "requires": {
+      "bpaIntegration": {
+        "kind": "rest",
+        "credentials": {
+          "destination": "bpaIntegration"
+        }
+      },
       "[production]": {
         "auth": "dummy"
       }
